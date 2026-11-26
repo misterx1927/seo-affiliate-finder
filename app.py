@@ -264,7 +264,7 @@ explorer = frame if show_history or latest is None else frame[frame["Date"] == l
 explorer = explorer[~explorer["URL"].map(lambda url: (urlsplit(str(url)).hostname or "").lower().rstrip(".") in {"trustpilot.com", "www.trustpilot.com", "ca.trustpilot.com"} or (urlsplit(str(url)).hostname or "").lower().rstrip(".").endswith(".trustpilot.com"))]
 explorer = explorer[~explorer["URL"].map(is_video_result)]
 categories = ["Возможные площадки", "Нужна проверка", "Не подходят", "Нет анализа"]
-selected_categories = st.multiselect("Показать", categories, default=["Возможные площадки"], key="prospect_categories_v2", help="Можно выбрать несколько категорий одновременно. Trustpilot исключён из списка площадок; исходная выдача сохранена в результатах прогона.")
+selected_categories = st.multiselect("Показать", categories, default=["Возможные площадки"], key="prospect_categories_v3", help="Можно выбрать несколько категорий одновременно. Trustpilot исключён из списка площадок; исходная выдача сохранена в результатах прогона.")
 processed = explorer["Status"].isin(["complete", "supplemental"])
 category = pd.Series("Нет анализа", index=explorer.index)
 category.loc[processed & (explorer["Relevance"] == "yes")] = "Возможные площадки"
@@ -299,6 +299,11 @@ else:
         st.caption("№ — номер строки; позиция Google считается отдельно для каждого запроса. Фильтры скрывают неподходящие результаты.")
     presentation = filtered.copy()
     presentation.insert(0, "№", range(1, len(presentation) + 1))
+    # Count coverage across the full latest snapshot, before prospect filters.
+    # This is not traffic, search volume, or the reason for a Google rank.
+    domain_key = current["Domain"].fillna("").astype(str).str.lower().str.replace(r"^www\.", "", regex=True)
+    keyword_coverage = current.assign(_domain_key=domain_key).groupby("_domain_key")["Keyword"].nunique()
+    presentation["Запросов в топ-10"] = presentation["Domain"].fillna("").astype(str).str.lower().str.replace(r"^www\.", "", regex=True).map(keyword_coverage).fillna(0).astype(int)
     presentation["Relevance"] = presentation.apply(lambda row: "Нет анализа" if row["Status"] not in ("complete", "supplemental") else relevance_labels.get(row["Relevance"], "Нужна проверка"), axis=1)
     presentation["Brands"] = presentation.apply(lambda row: row["Brands"] or ("Не найдены при анализе" if row["Status"] in ("complete", "supplemental") else "Не удалось определить"), axis=1)
     presentation["Public contact candidate"] = presentation.apply(lambda row: row["Public contact candidate"] or row["Contact"], axis=1)
@@ -306,13 +311,11 @@ else:
     presentation = presentation.rename(columns=column_labels)
     st.caption("🟢 Возможно подходит · 🟡 Проверить · 🟠 Не подходит · ⚪ Нет анализа")
     styled = presentation.style.map(assessment_color, subset=["Оценка"])
-    columns = ["№", "Позиция", "Ссылка на страницу", "Оценка", "Бренды", "Возможный контакт", "Страница контактов", "Запрос", "Дата"]
-    if selected_keyword == "Все запросы":
-        columns.remove("Запрос")
-        columns.insert(1, "Запрос")
+    columns = ["№", "Ссылка на страницу", "Позиция", "Запрос", "Запросов в топ-10", "Возможный контакт", "Страница контактов", "Оценка", "Бренды", "Дата"]
+    st.caption("Запросов в топ-10 — по скольким из наших 10 запросов встретился домен; это не посещаемость и не объяснение позиции Google.")
     st.dataframe(styled, hide_index=True, width="stretch", height=420,
                  column_order=columns,
-                 column_config={"№": st.column_config.NumberColumn("№", width="small"), "Позиция": st.column_config.NumberColumn("Место в Google", width="small"), "Ссылка на страницу": st.column_config.LinkColumn("Страница", display_text=r"https?://([^/]+).*", width="medium"), "Оценка": st.column_config.TextColumn("Оценка", width="medium"), "Бренды": st.column_config.TextColumn("Бренды", width="medium"), "Контакт на странице": st.column_config.TextColumn("Контакт на странице", width="medium"), "Возможный контакт": st.column_config.TextColumn("Возможный контакт", width="medium"), "Страница контактов": st.column_config.LinkColumn("Страница контактов", display_text="Открыть контакты ↗"), "Источник контакта": st.column_config.LinkColumn("Источник контакта", display_text="Открыть источник ↗")})
+                 column_config={"№": st.column_config.NumberColumn("№", width=40), "Позиция": st.column_config.NumberColumn("Место в Google", width="small"), "Ссылка на страницу": st.column_config.LinkColumn("Страница", display_text=r"https?://([^/]+).*", width=135), "Оценка": st.column_config.TextColumn("Оценка", width="medium"), "Бренды": st.column_config.TextColumn("Бренды", width="medium"), "Контакт на странице": st.column_config.TextColumn("Контакт на странице", width="medium"), "Возможный контакт": st.column_config.TextColumn("Контакт", width=170), "Страница контактов": st.column_config.LinkColumn("Страница контактов", display_text="Открыть контакты ↗"), "Источник контакта": st.column_config.LinkColumn("Источник контакта", display_text="Открыть источник ↗")})
     with st.expander("Подробнее о странице и источниках"):
         detail_options = filtered.drop_duplicates(subset=["URL"])
         selected_url = st.selectbox("Выберите страницу", detail_options["URL"].tolist(), key="page_detail")

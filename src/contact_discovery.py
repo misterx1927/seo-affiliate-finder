@@ -69,7 +69,11 @@ def contact_pages(content: bytes, charset: str, page_url: str, limit: int = 2) -
 
 
 def public_email_candidates(text: str) -> list[str]:
-    """Return email addresses literally present in visible content, deduplicated."""
+    """Return observed addresses, including explicit [at]/[dot] obfuscation."""
+    # Decode only explicit bracketed separators. Never generate mailbox names
+    # or guess an address from a domain or a generic contact page.
+    text = re.sub(r'(?<=\w)\s*(?:\[at\]|\(at\))\s*(?=\w)', '@', text, flags=re.I)
+    text = re.sub(r'(?<=\w)\s*(?:\[dot\]|\(dot\))\s*(?=\w)', '.', text, flags=re.I)
     emails, seen = [], set()
     for match in _EMAIL.finditer(text):
         email = match.group(1).rstrip('.')

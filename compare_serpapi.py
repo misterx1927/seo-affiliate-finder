@@ -50,6 +50,15 @@ def compare(serpapi_rows, dataforseo_rows):
     return {"exact_url_overlap": len(a & b), "exact_rank_matches": exact_rank}
 
 
+def save_report(report):
+    folder = Path("exports/serp-diagnostics")
+    folder.mkdir(parents=True, exist_ok=True)
+    path = folder / (datetime.now(timezone.utc).strftime("comparison-%Y%m%dT%H%M%S%fZ") + ".json")
+    with path.open("x", encoding="utf-8") as stream:
+        json.dump(report, stream, ensure_ascii=False, indent=2)
+    return path
+
+
 def main():
     parser = argparse.ArgumentParser(description="Compare fresh Google Canada mobile SERPs from two providers")
     parser.add_argument("--keyword", choices=KEYWORDS, default=KEYWORDS[0])
@@ -68,7 +77,13 @@ def main():
     started = datetime.now(timezone.utc).isoformat()
     first = serpapi_request(args.keyword, key)
     if len(first) != 10 or {r.get("rank") for r in first} != set(range(1, 11)):
-        raise RuntimeError("SerpApi did not return ten unique ranks; no DataForSEO request was sent")
+        path = save_report({"keyword": args.keyword, "started_at_utc": started,
+            "finished_at_utc": datetime.now(timezone.utc).isoformat(),
+            "settings": "google.ca, Canada, English, mobile; SerpApi cache disabled",
+            "serpapi": first, "dataforseo": None,
+            "status": "incomplete_serpapi",
+            "limitations": "SerpApi returned fewer than ten unique ranks; no DataForSEO request was sent."})
+        raise RuntimeError(f"Incomplete SerpApi results saved to {path}; no DataForSEO request was sent")
     diagnostic = run_one(login, password, keyword=args.keyword)
     second = [{"rank": r.get("rank_group"), "url": r.get("url"), "checks": r.get("checks")}
               for r in diagnostic["organic"][:10]]
@@ -79,11 +94,7 @@ def main():
               "dataforseo_reported_cost": diagnostic.get("cost"),
               "comparison": compare(first, second),
               "limitations": "Different providers/times. Agreement does not establish Google ground truth. DataForSEO from_web flags are retained."}
-    folder = Path("exports/serp-diagnostics")
-    folder.mkdir(parents=True, exist_ok=True)
-    path = folder / (datetime.now(timezone.utc).strftime("comparison-%Y%m%dT%H%M%S%fZ") + ".json")
-    with path.open("x", encoding="utf-8") as stream:
-        json.dump(report, stream, ensure_ascii=False, indent=2)
+    path = save_report(report)
     print("Comparison saved to", path)
     print(json.dumps(report["comparison"]))
 

@@ -10,6 +10,7 @@ from verify_results import inspect
 class VerifyResultsTests(unittest.TestCase):
     def write_snapshot(self, duplicate=False):
         path = Path('data') / f'test-snapshot-{uuid4().hex}.csv'
+        path.parent.mkdir(parents=True, exist_ok=True)
         self.addCleanup(lambda: path.unlink(missing_ok=True))
         with path.open('w', encoding='utf-8-sig', newline='') as stream:
             writer = csv.writer(stream)
@@ -30,6 +31,34 @@ class VerifyResultsTests(unittest.TestCase):
     def test_duplicate_position_is_rejected(self):
         _, errors = inspect(self.write_snapshot(duplicate=True))
         self.assertTrue(any('positions 1–10' in error for error in errors))
+
+    def test_repeated_url_with_conflicting_analysis_is_rejected(self):
+        path = self.write_snapshot()
+        with path.open(encoding='utf-8-sig', newline='') as stream:
+            reader = csv.DictReader(stream)
+            fields, rows = reader.fieldnames, list(reader)
+        rows[10]['relevance'] = 'no'  # Same URL as row 0, a different keyword.
+        with path.open('w', encoding='utf-8-sig', newline='') as stream:
+            writer = csv.DictWriter(stream, fieldnames=fields)
+            writer.writeheader()
+            writer.writerows(rows)
+        _, errors = inspect(path)
+        self.assertTrue(any('Conflicting relevance' in error for error in errors))
+
+    def test_domain_must_match_url_when_present(self):
+        path = self.write_snapshot()
+        with path.open(encoding='utf-8-sig', newline='') as stream:
+            reader = csv.DictReader(stream)
+            fields, rows = reader.fieldnames + ['domain'], list(reader)
+        for row in rows:
+            row['domain'] = 'example.com'
+        rows[0]['domain'] = 'unrelated.example'
+        with path.open('w', encoding='utf-8-sig', newline='') as stream:
+            writer = csv.DictWriter(stream, fieldnames=fields)
+            writer.writeheader()
+            writer.writerows(rows)
+        _, errors = inspect(path)
+        self.assertTrue(any('domain does not match' in error for error in errors))
 
 
 if __name__ == '__main__':

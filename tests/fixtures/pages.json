@@ -1,0 +1,14 @@
+{
+ "https://reviews.example/canada": {
+   "html": "<html><body><h1>Independent casino reviews</h1><p>Our editors compare Maple Casino and Blue Casino for Canadian players, including their games, payment options, bonus terms and customer support.</p><p>Contact us at <a href='mailto:editor@reviews.example'>our editorial team</a> for partnerships.</p></body></html>",
+   "analysis": {"relevance": "yes", "brands": ["Maple Casino", "Blue Casino"], "contact": "editor@reviews.example", "evidence": "Independent casino reviews"}
+ },
+ "https://operator.example/": {
+   "html": "<html><body><h1>Maple Casino official website</h1><p>Play casino games directly at Maple Casino. Sign up for an account to explore slots, live games, promotions, payment options and our support services.</p></body></html>",
+   "analysis": {"relevance": "no", "brands": ["Maple Casino"], "contact": null, "evidence": "Maple Casino official website"}
+ },
+ "https://en.wikipedia.org/wiki/Online_casino": {
+   "html": "<html><body><h1>Online casino</h1><p>An online casino is an internet-based version of a traditional casino. This fictional encyclopedia entry describes the history and regulation of online gambling.</p></body></html>",
+   "analysis": {"relevance": "no", "brands": [], "contact": null, "evidence": "This fictional encyclopedia entry"}
+ }
+}

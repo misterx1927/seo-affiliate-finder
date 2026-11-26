@@ -1,0 +1,9 @@
+{
+  "status_code": 20000,
+  "tasks": [{"status_code": 20000, "result": [{"items": [
+    {"type": "paid", "rank_group": 1, "url": "https://ad.example/"},
+    {"type": "organic", "rank_group": 2, "url": "https://operator.example/"},
+    {"type": "organic", "rank_group": 1, "url": "https://reviews.example/canada?utm_source=test"},
+    {"type": "organic", "rank_group": 3, "url": "https://en.wikipedia.org/wiki/Online_casino"}
+  ]}]}]
+}

@@ -158,6 +158,8 @@ st.markdown(f'''<div class="topbar"><div class="brand"><span class="brand-mark">
 with connect("data/demo.db" if is_demo else "data/live.db") as conn:
     review_path = Path("results/independent-review-2026-11-26.json")
     supplemental = json.loads(review_path.read_text(encoding="utf-8")) if not is_demo and review_path.is_file() else {}
+    domain_contact_path = Path("results/public-domain-contacts.json")
+    domain_contacts = json.loads(domain_contact_path.read_text(encoding="utf-8")) if not is_demo and domain_contact_path.is_file() else {}
     contact_links = {}
     cached_rows = conn.execute("""SELECT c.url, c.content, c.charset FROM page_cache c
         JOIN pages p ON p.url=c.url WHERE p.status='complete' AND p.relevance='yes'""").fetchall()
@@ -201,6 +203,11 @@ with connect("data/demo.db" if is_demo else "data/live.db") as conn:
         item['Contact candidate source'] = (review.get('contact_page', '') if review else '') or item.pop('ContactCandidateSource', '')
         item['Analysis version'] = item.pop('AnalysisVersion', '')
         item['Contact page'] = review.get('contact_page', '') if review and review.get('contact_page') else contact_links.get(item['URL'], '')
+        domain_contact = domain_contacts.get((urlsplit(item['URL']).hostname or '').lower().removeprefix('www.'), {})
+        if domain_contact and item['Relevance'] == 'yes':
+            item['Public contact candidate'] = domain_contact['email'] or item['Public contact candidate']
+            item['Contact candidate source'] = domain_contact['source']
+            item['Contact page'] = domain_contact['contact_page']
         item.pop('WebRanks', None)
         item.pop('VerificationRequested', None)
         item.pop('PageSource', None)
@@ -252,13 +259,12 @@ if not is_demo and "SERP source" in current.columns:
 st.markdown('''<div class="section-top"><div><div class="section-label">Результаты поиска</div></div></div>''', unsafe_allow_html=True)
 show_history = st.checkbox("Показать предыдущие даты", value=False)
 explorer = frame if show_history or latest is None else frame[frame["Date"] == latest]
-video_count = int(explorer["URL"].map(is_video_result).sum())
-if video_count:
-    include_video = st.checkbox(f"Показать результаты YouTube: {video_count}", value=False, help="Столько ссылок на видео нашлось в сохранённой выдаче. Они скрыты, потому что обычно не являются площадками для размещения.")
-    if not include_video:
-        explorer = explorer[~explorer["URL"].map(is_video_result)]
+# Trustpilot is a review platform, not a placement prospect. Keep the original
+# search result in the stored snapshot, but exclude it from the prospect list.
+explorer = explorer[~explorer["URL"].map(lambda url: (urlsplit(str(url)).hostname or "").lower().rstrip(".") in {"trustpilot.com", "www.trustpilot.com", "ca.trustpilot.com"} or (urlsplit(str(url)).hostname or "").lower().rstrip(".").endswith(".trustpilot.com"))]
+explorer = explorer[~explorer["URL"].map(is_video_result)]
 categories = ["Возможные площадки", "Нужна проверка", "Не подходят", "Нет анализа"]
-selected_categories = st.multiselect("Показать", categories, default=["Возможные площадки"], help="Можно выбрать несколько категорий одновременно. Все результаты доступны через этот фильтр.")
+selected_categories = st.multiselect("Показать", categories, default=["Возможные площадки"], key="prospect_categories_v2", help="Можно выбрать несколько категорий одновременно. Trustpilot исключён из списка площадок; исходная выдача сохранена в результатах прогона.")
 processed = explorer["Status"].isin(["complete", "supplemental"])
 category = pd.Series("Нет анализа", index=explorer.index)
 category.loc[processed & (explorer["Relevance"] == "yes")] = "Возможные площадки"
@@ -273,8 +279,7 @@ with filters_a:
     query = st.text_input("Поиск", placeholder="Домен, запрос, бренд или контакт", label_visibility="collapsed")
 with filters_b:
     keywords = ["Все запросы"] + sorted(frame["Keyword"].unique().tolist())
-    default_keyword = keywords.index("online casino canada") if "online casino canada" in keywords else 0
-    selected_keyword = st.selectbox("Поисковый запрос", keywords, index=default_keyword, label_visibility="collapsed")
+    selected_keyword = st.selectbox("Поисковый запрос", keywords, index=0, key="prospect_keyword_v2", label_visibility="collapsed")
 filtered = explorer
 if selected_keyword != "Все запросы":
     filtered = filtered[filtered["Keyword"] == selected_keyword]

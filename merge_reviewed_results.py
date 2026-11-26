@@ -6,6 +6,7 @@ are not automated model outputs, and their brand lists can be incomplete.
 import csv
 import json
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from src.exporter import safe_cell
 
@@ -16,6 +17,7 @@ DESTINATION = Path('results/run-7-reviewed.csv')
 
 def main():
     reviews = json.loads(REVIEWS.read_text(encoding='utf-8'))
+    domain_contacts = json.loads(Path('results/public-domain-contacts.json').read_text(encoding='utf-8'))
     with SOURCE.open(encoding='utf-8-sig', newline='') as stream:
         reader = csv.DictReader(stream)
         fields = list(reader.fieldnames or [])
@@ -37,6 +39,11 @@ def main():
             if review.get('contact'):
                 row['public_contact_candidate'] = review['contact']
                 row['contact_candidate_source'] = review.get('contact_page', '')
+        domain_contact = domain_contacts.get((urlsplit(row.get('url', '')).hostname or '').lower().removeprefix('www.'))
+        if domain_contact and row.get('relevance') == 'yes':
+            row['public_contact_candidate'] = domain_contact['email'] or row.get('public_contact_candidate', '')
+            row['contact_candidate_source'] = domain_contact['source']
+            row['public_contact_page'] = domain_contact['contact_page']
     with DESTINATION.open('w', encoding='utf-8-sig', newline='') as stream:
         writer = csv.DictWriter(stream, fieldnames=fields, extrasaction='raise')
         writer.writeheader()

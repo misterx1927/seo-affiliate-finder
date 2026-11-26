@@ -287,7 +287,7 @@ if query.strip():
     needle = query.strip().casefold()
     mask = filtered[["Domain", "Keyword", "Brands", "Contact", "Public contact candidate"]].fillna("").apply(lambda row: needle in " ".join(str(value) for value in row).casefold(), axis=1)
     filtered = filtered[mask]
-filtered = filtered.sort_values(["Date", "Keyword", "Position"], ascending=[False, True, True], kind="stable")
+filtered = filtered.sort_values(["Date", "Position", "Keyword"], ascending=[False, True, True], kind="stable")
 
 relevance_labels = {"yes": "Возможно подходит", "no": "Не подходит", "needs_review": "Нужна проверка"}
 column_labels = {"URL": "Ссылка на страницу", "Domain": "Домен", "Position": "Позиция", "Relevance": "Оценка", "Brands": "Бренды", "Contact": "Контакт на странице", "Contact page": "Страница контактов", "Public contact candidate": "Возможный контакт", "Contact candidate source": "Источник контакта", "Keyword": "Запрос", "Date": "Дата", "Status": "Способ оценки", "Evidence": "Подтверждение", "Error": "Причина проверки", "SERP source": "Источник позиции", "Page source": "Источник страницы", "Analysis version": "Версия анализа", "Review note": "Примечание к проверке"}

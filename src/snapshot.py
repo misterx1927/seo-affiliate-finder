@@ -35,6 +35,7 @@ def load_snapshot(path: str | Path) -> list[dict]:
             "VerificationRequested": 1 if verification else None,
             "SnapshotSerpSource": row.get("serp_provenance") or "unknown",
             "PageSource": row.get("page_source") or "direct_or_unknown",
+            "SnapshotReviewNote": row.get("review_note") or "",
             "ContactCandidate": row.get("public_contact_candidate") or "",
             "ContactCandidateSource": row.get("contact_candidate_source") or "",
         })

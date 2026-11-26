@@ -32,7 +32,9 @@ def load_targets(conn, run_id, limit):
 def inspect_page(url):
     try:
         content, charset = fetch_page(url, timeout=6, same_origin_only=True)
-        text = extract_text(content, charset)
+        # A contact page can legitimately contain only a heading and email.
+        # Keep challenge detection, but do not impose the article length limit.
+        text = extract_text(content, charset, min_text_chars=1)
         return choose_contact(public_email_candidates(text), url), None
     except Exception as exc:
         return None, f'{type(exc).__name__}: {exc}'

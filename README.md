@@ -31,9 +31,11 @@ Optionally add `--verify-serp` to detect and replace potentially poisoned result
 
 ## Recorded results and cost
 
-The [reviewed 25 November run](results/run-7-reviewed.csv) contains 100 positions for ten queries, including 87 flagged as restored from Google Web. Among 69 unique URLs, 35 have accepted AI analyses (seven uncertain), 26 have separately identified supplementary reviews, and eight have no accepted analysis or supplementary review. Supplementary reviews are partial checks of indexed content, not AI outputs. The snapshot includes documented manual corrections and is not a pristine model output. Public email candidates are separate from AI contacts and are not verified partnership addresses. See [results notes](results/README.md), [recovery review](RECOVERY_REVIEW.md), and the [random-sample review](RUN7_RANDOM_EVALUATION.md).
+The [reviewed 25 November run](results/run-7-reviewed.csv) contains 100 positions for ten queries, including 87 flagged as restored from Google Web. Among 69 unique URLs, 35 have accepted AI analyses (seven uncertain), 26 have separately identified supplementary reviews, and eight have no accepted analysis or supplementary review in the CSV. The dashboard includes one later partial review and a public marketing contact, documented [here](results/COVERAGE_RECHECK.md); it does not change the historical CSV. Supplementary reviews are partial checks of indexed content, not AI outputs. The snapshot includes documented manual corrections and is not a pristine model output. Public email candidates are separate from AI contacts and require verification. See the [20-URL sample audit](AUDIT_SAMPLE_2026-11-26.md) for evidence and limitations.
 
 The original run’s reported search charges were **$0.046**; its reported 106,981 input and 2,704 output tokens cost approximately **$0.0121**, or **$0.0581** combined at the then-listed [model prices](https://developers.openai.com/api/docs/models/gpt-6-luna). Recovery and diagnostics cost extra, and unreported charges are excluded. Check [current search pricing](https://dataforseo.com/pricing/google-serp/google-organic-serp-api) and provider billing.
+
+An exploratory [comparison for one keyword](results/SERP_COMPARISON.md) includes a direct desktop Google check; it does not verify Canadian mobile rankings.
 
 ## Choices and limitations
 

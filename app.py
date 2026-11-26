@@ -265,8 +265,8 @@ show_history = st.checkbox("Показать предыдущие даты", val
 explorer = frame if show_history or latest is None else frame[frame["Date"] == latest]
 # Trustpilot is a review platform, not a placement prospect. Keep the original
 # search result in the stored snapshot, but exclude it from the prospect list.
-explorer = explorer[~explorer["URL"].map(lambda url: (urlsplit(str(url)).hostname or "").lower().rstrip(".") in {"trustpilot.com", "www.trustpilot.com", "ca.trustpilot.com"} or (urlsplit(str(url)).hostname or "").lower().rstrip(".").endswith(".trustpilot.com"))]
-explorer = explorer[~explorer["URL"].map(is_video_result)]
+explorer = explorer.loc[~explorer["URL"].map(lambda url: (urlsplit(str(url)).hostname or "").lower().rstrip(".") in {"trustpilot.com", "www.trustpilot.com", "ca.trustpilot.com"} or (urlsplit(str(url)).hostname or "").lower().rstrip(".").endswith(".trustpilot.com")).astype(bool)]
+explorer = explorer.loc[~explorer["URL"].map(is_video_result).astype(bool)]
 categories = ["Возможные площадки", "Нужна проверка", "Не подходят", "Нет анализа"]
 selected_categories = st.multiselect("Показать", categories, default=["Возможные площадки"], key="prospect_categories_v3", help="Можно выбрать несколько категорий одновременно. Trustpilot исключён из списка площадок; исходная выдача сохранена в результатах прогона.")
 processed = explorer["Status"].isin(["complete", "supplemental"])
@@ -287,7 +287,7 @@ with filters_b:
 filtered = explorer
 if selected_keyword != "Все запросы":
     filtered = filtered[filtered["Keyword"] == selected_keyword]
-if query.strip():
+if query.strip() and not filtered.empty:
     needle = query.strip().casefold()
     mask = filtered[["Domain", "Keyword", "Brands", "Contact", "Public contact candidate"]].fillna("").apply(lambda row: needle in " ".join(str(value) for value in row).casefold(), axis=1)
     filtered = filtered[mask]

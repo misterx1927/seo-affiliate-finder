@@ -10,8 +10,7 @@ next(item for item in app.button if item.label == "Обновить демо").c
 assert not app.exception, [item.value for item in app.exception]
 metrics = {item.label: item.value for item in app.metric}
 assert metrics == {"ЗАПРОСЫ": "10", "ПОЗИЦИИ": "30", "СТРАНИЦЫ": "3", "ВОЗМОЖНЫЕ ПЛОЩАДКИ": "1"}, metrics
-assert app.selectbox[0].value == "online casino canada"
-app.selectbox[0].select("Все запросы").run(timeout=30)
+assert app.selectbox[0].value == "Все запросы"
 queue = next(item for item in app.multiselect if item.label == "Показать")
 queue.set_value(["Возможные площадки"]).run(timeout=30)
 assert not app.exception, [item.value for item in app.exception]
@@ -32,5 +31,13 @@ assert not app.exception, [item.value for item in app.exception]
 assert not any("Обновить демо" in button.label for button in app.button)
 assert len(app.progress) == 1
 assert any("Google Web" in item.value for item in app.caption)
+app.selectbox[0].select("Все запросы").run(timeout=30)
+next(item for item in app.multiselect if item.label == "Показать").set_value(
+    ["Возможные площадки", "Нужна проверка", "Не подходят", "Нет анализа"]
+).run(timeout=30)
+assert not app.exception
+if app.dataframe:
+    urls = app.dataframe[0].value["Ссылка на страницу"].astype(str)
+    assert not urls.str.contains(r"^https?://(?:[^/]+\.)?trustpilot\.com(?:/|$)", case=False, regex=True).any()
 print("UI smoke test passed: Russian demo, filters and live results.")
 

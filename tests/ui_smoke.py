@@ -15,6 +15,8 @@ queue = next(item for item in app.multiselect if item.label == "Показать
 queue.set_value(["Возможные площадки"]).run(timeout=30)
 assert not app.exception, [item.value for item in app.exception]
 assert len(app.dataframe[0].value) == 10
+assert app.dataframe[0].value["№"].tolist() == list(range(1, 11))
+assert "Позиция" in app.dataframe[0].value.columns
 assert set(app.dataframe[0].value["Оценка"]) == {"Возможно подходит"}
 app.text_input[0].input("reviews.example").run(timeout=30)
 assert not app.exception

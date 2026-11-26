@@ -248,53 +248,40 @@ b.metric("ПОЗИЦИИ", str(len(current)))
 c.metric("СТРАНИЦЫ", str(current["URL"].nunique()))
 d.metric("ВОЗМОЖНЫЕ ПЛОЩАДКИ", str(current.loc[(current["Relevance"] == "yes") & (current["Status"].isin(["complete", "supplemental"])), "URL"].nunique()), help="Предварительная оценка AI или дополнительная проверка. Пригодность площадки нужно подтвердить.")
 
-unique_pages = current.drop_duplicates(subset=["URL"])
-complete_pages = unique_pages[unique_pages["Status"] == "complete"]
-supplemental_pages = unique_pages[unique_pages["Status"] == "supplemental"]
-unprocessed_pages = len(unique_pages) - len(complete_pages) - len(supplemental_pages)
-uncertain_pages = int((unique_pages[unique_pages["Status"].isin(["complete", "supplemental"])]["Relevance"] == "needs_review").sum())
-st.caption(f"Дополнительная проверка: {len(supplemental_pages)} · Нет данных: {unprocessed_pages} · Неоднозначно: {uncertain_pages}")
 if not is_demo and "SERP source" in current.columns:
     restored = int((current["SERP source"] == "restored_from_google_web").sum())
     st.caption(f"{restored} из {len(current)} позиций восстановлены через Google Web и могут отличаться от мобильной выдачи. Дополнительная проверка не является AI-анализом; контакты требуют подтверждения.")
 
 st.markdown('''<div class="section-top"><div><div class="section-label">Результаты поиска</div></div></div>''', unsafe_allow_html=True)
-show_history = st.checkbox("Показать предыдущие даты", value=False)
+show_history = st.checkbox("Показать предыдущие даты", value=False, help="Добавить результаты других дат для сравнения.") if frame["Date"].nunique() > 1 else False
 explorer = frame if show_history or latest is None else frame[frame["Date"] == latest]
 # Trustpilot is a review platform, not a placement prospect. Keep the original
 # search result in the stored snapshot, but exclude it from the prospect list.
 explorer = explorer.loc[~explorer["URL"].map(lambda url: (urlsplit(str(url)).hostname or "").lower().rstrip(".") in {"trustpilot.com", "www.trustpilot.com", "ca.trustpilot.com"} or (urlsplit(str(url)).hostname or "").lower().rstrip(".").endswith(".trustpilot.com")).astype(bool)]
 explorer = explorer.loc[~explorer["URL"].map(is_video_result).astype(bool)]
 categories = ["Возможные площадки", "Нужна проверка", "Не подходят", "Нет анализа"]
-selected_categories = st.multiselect("Показать", categories, default=["Возможные площадки"], key="prospect_categories_v3", help="Можно выбрать несколько категорий одновременно. Trustpilot исключён из списка площадок; исходная выдача сохранена в результатах прогона.")
+selected_categories = st.multiselect("Показать", categories, default=["Возможные площадки"], key="prospect_categories_v3", placeholder="Все категории", help="Можно выбрать несколько категорий одновременно. Trustpilot исключён из списка площадок; исходная выдача сохранена в результатах прогона.")
 processed = explorer["Status"].isin(["complete", "supplemental"])
 category = pd.Series("Нет анализа", index=explorer.index)
 category.loc[processed & (explorer["Relevance"] == "yes")] = "Возможные площадки"
 category.loc[processed & (explorer["Relevance"] == "no")] = "Не подходят"
 category.loc[processed & (explorer["Relevance"] == "needs_review")] = "Нужна проверка"
-explorer = explorer[category.isin(selected_categories)]
+if selected_categories:
+    explorer = explorer[category.isin(selected_categories)]
 only_contacts = st.checkbox("Только с контактом или страницей контактов", value=False, help="Показывает адреса, найденные на странице, возможные публичные контакты и ссылки на контактные страницы. Перед обращением их нужно проверить.")
 if only_contacts:
     explorer = explorer[(explorer["Contact"].fillna("") != "") | (explorer["Public contact candidate"].fillna("") != "") | (explorer["Contact page"].fillna("") != "")]
-filters_a, filters_b = st.columns([2, 1])
-with filters_a:
-    query = st.text_input("Поиск", placeholder="Домен, запрос, бренд или контакт", label_visibility="collapsed")
-with filters_b:
-    keywords = ["Все запросы"] + sorted(frame["Keyword"].unique().tolist())
-    selected_keyword = st.selectbox("Поисковый запрос", keywords, index=0, key="prospect_keyword_v2", label_visibility="collapsed")
+keywords = ["Все запросы"] + sorted(frame["Keyword"].unique().tolist())
+selected_keyword = st.selectbox("Поисковый запрос", keywords, index=0, key="prospect_keyword_v2")
 filtered = explorer
 if selected_keyword != "Все запросы":
     filtered = filtered[filtered["Keyword"] == selected_keyword]
-if query.strip() and not filtered.empty:
-    needle = query.strip().casefold()
-    mask = filtered[["Domain", "Keyword", "Brands", "Contact", "Public contact candidate"]].fillna("").apply(lambda row: needle in " ".join(str(value) for value in row).casefold(), axis=1)
-    filtered = filtered[mask]
 filtered = filtered.sort_values(["Date", "Position", "Keyword"], ascending=[False, True, True], kind="stable")
 
 relevance_labels = {"yes": "Возможно подходит", "no": "Не подходит", "needs_review": "Нужна проверка"}
 column_labels = {"URL": "Ссылка на страницу", "Domain": "Домен", "Position": "Позиция", "Relevance": "Оценка", "Brands": "Бренды", "Contact": "Контакт на странице", "Contact page": "Страница контактов", "Public contact candidate": "Возможный контакт", "Contact candidate source": "Источник контакта", "Keyword": "Запрос", "Date": "Дата", "Status": "Способ оценки", "Evidence": "Подтверждение", "Error": "Причина проверки", "SERP source": "Источник позиции", "Page source": "Источник страницы", "Analysis version": "Версия анализа", "Review note": "Примечание к проверке"}
 if filtered.empty:
-    st.info("Результатов по выбранным условиям нет. Измените фильтр или поисковый запрос.")
+    st.info("Нет результатов с выбранными фильтрами. Измените категории, запрос или снимите ограничение по контактам.")
 else:
     st.caption(f"Найдено позиций: {len(filtered)} · Уникальных страниц: {filtered['URL'].nunique()}")
     if selected_keyword == "Все запросы":

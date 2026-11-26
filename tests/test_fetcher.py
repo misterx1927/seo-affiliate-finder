@@ -104,6 +104,21 @@ class FetchTests(unittest.TestCase):
                 "Useful casino review. " * 20 + "</p>").encode()
         self.assertIn("Useful casino review", extract_text(html))
 
+    def test_hidden_content_is_not_sent_as_evidence_to_the_analyzer(self):
+        html = ("<div hidden><div>HiddenCasino</div><br>fake@site.example</div>"
+                "<div style='color: red; display: none !important'><p>OtherCasino</p></div>"
+                "<div style='visibility: hidden'>HiddenBrand</div>"
+                "<article>" + "A visible casino review with independent information. " * 3 + "</article>").encode()
+        text = extract_text(html)
+        for hidden in ("HiddenCasino", "fake@site.example", "OtherCasino", "HiddenBrand"):
+            self.assertNotIn(hidden, text)
+        self.assertIn("visible casino review", text)
+
+    def test_insufficient_visible_text_is_not_rescued_by_hidden_content(self):
+        html = ("<p>Loading...</p><div hidden>" + "Imaginary casino review. " * 50 + "</div>").encode()
+        with self.assertRaisesRegex(PageError, "Insufficient readable content"):
+            extract_text(html)
+
     def test_advertised_oversized_page_is_not_downloaded(self):
         connection = MagicMock()
         response = connection.getresponse.return_value

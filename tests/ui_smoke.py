@@ -41,6 +41,9 @@ next(item for item in app.multiselect if item.label == "Показать").set_v
 app.text_input[0].input("casinoslists.com").run(timeout=30)
 assert not app.exception, [item.value for item in app.exception]
 assert "marketing@casinoslists.com" in app.dataframe[0].value["Возможный контакт"].values
+app.text_input[0].input("slotsmate.com").run(timeout=30)
+assert not app.exception, [item.value for item in app.exception]
+assert "marketing@slotsmate.com" in app.dataframe[0].value["Возможный контакт"].values
 app.text_input[0].input("").run(timeout=30)
 app.selectbox[0].select("Все запросы").run(timeout=30)
 next(item for item in app.multiselect if item.label == "Показать").set_value(

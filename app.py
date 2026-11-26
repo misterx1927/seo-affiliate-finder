@@ -1,0 +1,360 @@
+from datetime import date
+from html import escape
+from io import BytesIO
+import json
+from pathlib import Path
+import sqlite3
+import re
+from urllib.parse import urlsplit
+
+import pandas as pd
+import streamlit as st
+from openpyxl import Workbook
+
+from src.database import connect
+from src.exporter import safe_cell, serp_provenance
+from src.pipeline import run_offline
+from src.contact_discovery import contact_pages
+
+st.set_page_config(page_title="Affiliate Finder | Search intelligence", page_icon="✳", layout="wide", initial_sidebar_state="collapsed")
+st.markdown("""<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+:root {color-scheme:dark;}
+html, body, [class*="css"], [data-testid="stAppViewContainer"] {font-family:'DM Sans', sans-serif;}
+[data-testid="stAppViewContainer"] {background: radial-gradient(ellipse at 72% -18%,#293e30 0%,transparent 42%), radial-gradient(ellipse at 5% 47%,#17221a 0%,transparent 34%), #0b100e;}
+[data-testid="stHeader"] {background:transparent;}
+[data-testid="stDeployButton"] {display:none;}
+[data-testid="stSidebar"] {background:#0d1511; border-right:1px solid #26352b;}
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p {color:#b7c5b9;}
+.block-container {padding:2.3rem 3.1rem 4rem; max-width:1500px;}
+h1,h2,h3 {font-family:'Manrope',sans-serif !important; letter-spacing:-.045em;}
+p {line-height:1.55;}
+.topbar {display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #314236;padding-bottom:20px;margin-bottom:30px;gap:15px;}
+.brand {display:flex;align-items:center;gap:11px;color:#eff6ec;font-family:'Manrope',sans-serif;font-weight:800;letter-spacing:-.04em;font-size:18px;}
+.brand-mark {width:33px;height:33px;display:grid;place-items:center;border-radius:10px;background:#c9f777;color:#172316;font-size:20px;}
+.brand-sub {color:#738478;font-size:10px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;margin-left:12px;padding-left:16px;border-left:1px solid #36453b;}
+.top-meta {display:flex;gap:8px;align-items:center;}
+.pill {border:1px solid #33453a;border-radius:100px;padding:7px 11px;color:#acbcb0;font-size:11px;font-weight:600;white-space:nowrap;}
+.dot {display:inline-block;width:6px;height:6px;border-radius:50%;background:#bdf273;margin-right:6px;vertical-align:middle;}
+.eyebrow {color:#b8ee70;font-size:10px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;margin:2px 0 13px;}
+.hero-title {font:800 clamp(2.3rem,4vw,3.75rem)/1.06 'Manrope',sans-serif;letter-spacing:-.07em;color:#f3f7ef;margin:0 0 14px;}
+.hero-title em {font-style:normal;color:#c5f47e;}
+.hero-copy {color:#92a498;font-size:15px;max-width:550px;margin:0 0 19px;}
+.context-row {display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px;}
+.context-item {font-size:11px;color:#b2c0b3;background:#18221c;border:1px solid #2d3c32;border-radius:8px;padding:7px 10px;}
+.demo-note {font-size:11px;line-height:1.5;color:#9aa99d;margin-top:8px;}
+.hero-art {position:relative;overflow:hidden;border:1px solid #496249;border-radius:20px;background:linear-gradient(135deg,#304d35,#15261b 68%);min-height:210px;padding:25px 26px;box-shadow:0 20px 60px #0003;}
+.hero-art:after {content:'';position:absolute;width:245px;height:245px;border:1px solid #a0d57c33;border-radius:50%;right:-45px;top:-21px;box-shadow:0 0 0 28px #a0d57c0b,0 0 0 57px #a0d57c0a,0 0 0 87px #a0d57c08;}
+.art-kicker {font-size:10px;text-transform:uppercase;letter-spacing:.15em;color:#a6bbaa;font-weight:700;position:relative;z-index:1;}
+.art-value {font:800 58px/1 'Manrope',sans-serif;letter-spacing:-.07em;color:#e8f7d6;margin:20px 0 6px;position:relative;z-index:1;}
+.art-label {font-size:12px;color:#aabfa9;position:relative;z-index:1;}
+.art-footer {margin-top:23px;color:#d4e9c9;font-size:11px;position:relative;z-index:1;}
+.section-top {display:flex;justify-content:space-between;align-items:end;margin:36px 0 15px;gap:12px;}
+.section-label {font:700 18px 'Manrope',sans-serif;color:#edf4ea;letter-spacing:-.035em;}
+.section-sub {color:#7f9183;font-size:12px;margin-top:5px;}
+.section-side {font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:#819286;white-space:nowrap;}
+[data-testid="stMetric"] {background:linear-gradient(155deg,#1e2d22,#121b15);border:1px solid #304535;border-radius:16px;padding:20px 20px 18px;min-height:116px;box-shadow:0 8px 24px #0002;}
+[data-testid="stMetricLabel"] p {color:#9baea0;font-size:11px;font-weight:700;letter-spacing:.08em;}
+[data-testid="stMetricValue"] {font-family:'Manrope',sans-serif;color:#f2f7ec;font-size:32px;font-weight:700;}
+[data-testid="stMetricValue"] div {font-size:32px;}
+.stButton > button[kind="primary"] {background:#c7f477;color:#172313;border:0;border-radius:10px;min-height:48px;font-weight:800;box-shadow:0 8px 28px #b6e96e18;}
+.stButton > button[kind="primary"]:hover {background:#d7ff99;color:#142010;border:0;}
+[data-testid="stTextInput"] input, [data-baseweb="select"] > div {background:#151f19 !important;border-color:#304036 !important;border-radius:9px !important;color:#eaf2e8 !important;}
+[data-testid="stDataFrame"] {border:1px solid #2b3a30;border-radius:12px;overflow:hidden;}
+[data-testid="stDownloadButton"] button {background:#17231b;border:1px solid #34483a;border-radius:9px;color:#dbe8d9;font-weight:600;}
+[data-testid="stAlert"] {border:1px solid #354a39;border-radius:12px;background:#18261c;}
+.signal-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:14px 0 8px;}
+.signal-card {background:linear-gradient(150deg,#19271d,#111b14);border:1px solid #304436;border-radius:14px;padding:18px 19px;min-height:118px;}
+.signal-kicker {color:#a4b6a6;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;}
+.signal-value {font:800 28px/1 'Manrope',sans-serif;color:#ecf5e8;letter-spacing:-.05em;margin:12px 0 7px;}
+.signal-note {color:#90a395;font-size:11px;line-height:1.4;}
+.signal-card.ready .signal-value {color:#c8f47e;}
+.signal-card.review .signal-value {color:#f0d38f;}
+.quality-note {border:1px solid #40533c;border-left:3px solid #c5ed81;border-radius:12px;background:#19271c;padding:14px 17px;margin:18px 0 8px;color:#c7d7c7;font-size:12px;line-height:1.55;}
+.quality-note strong {color:#eef7e8;}
+[data-testid="stExpander"] {border:1px solid #304436;border-radius:14px;background:#111a14;}
+.footer {border-top:1px solid #25332a;margin-top:38px;padding-top:17px;display:flex;justify-content:space-between;gap:12px;color:#6e8073;font-size:11px;}
+@media (max-width: 760px) {.block-container {padding:1.3rem 1rem 3rem;} .brand-sub,.top-meta .pill:first-child {display:none;} .hero-art {min-height:155px;} .section-side {display:none;} .hero-title {font-size:2.45rem;} .footer {display:block;} .signal-grid {grid-template-columns:1fr;gap:8px;} .signal-card {min-height:auto;} }
+</style>""", unsafe_allow_html=True)
+
+def live_results_exist():
+    if not Path("data/live.db").is_file():
+        return False
+    try:
+        with sqlite3.connect("data/live.db") as db:
+            return bool(db.execute("SELECT 1 FROM observations LIMIT 1").fetchone())
+    except sqlite3.Error:
+        return False
+
+
+def show_contact(value):
+    if not value:
+        st.write("Нет данных")
+    elif re.fullmatch(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", str(value)):
+        address = escape(str(value), quote=True)
+        st.markdown(f'<a href="mailto:{address}">{address}</a>', unsafe_allow_html=True)
+    elif str(value).startswith(("https://", "http://")):
+        st.link_button("Открыть контакт ↗", str(value))
+    else:
+        st.write(str(value))
+
+
+def is_video_result(url):
+    host = (urlsplit(url).hostname or "").lower().rstrip(".")
+    return host == "youtu.be" or host == "youtube.com" or host.endswith(".youtube.com")
+
+
+def assessment_color(value):
+    colors = {
+        "Возможно подходит": "color: #b8f27a; background-color: #243d27; font-weight: 600",
+        "Нужна проверка": "color: #f3d778; background-color: #44391c; font-weight: 600",
+        "Не подходит": "color: #ffb088; background-color: #4a2c1f; font-weight: 600",
+        "Нет анализа": "color: #bec7c0; background-color: #303933; font-weight: 600",
+    }
+    return colors.get(value, "")
+
+
+def friendly_error(error):
+    error = str(error or "").lower()
+    if "403" in error or "access challenge" in error:
+        return "Сайт ограничил автоматический доступ. Откройте страницу вручную для проверки."
+    if "451" in error or "regional" in error:
+        return "Содержимое недоступно для выбранного региона. Проверьте страницу вручную."
+    if "connection" in error or "dns" in error or "timeout" in error:
+        return "Не удалось подключиться к сайту. Попробуйте открыть страницу вручную."
+    if "manual review" in error:
+        return "Площадку необходимо проверить вручную."
+    return "Не удалось надёжно определить данные страницы. Требуется проверка вручную."
+
+
+@st.cache_data(max_entries=200, show_spinner=False)
+def contact_page_from_cache(content, charset, url):
+    links = contact_pages(content, charset, url)
+    return next((link for link in links if 'contact' in urlsplit(link).path.lower() and not urlsplit(link).query), '')
+
+
+with st.sidebar:
+    st.markdown("### ✳ Affiliate Finder")
+    st.caption("Поиск площадок для размещения")
+    st.divider()
+    st.markdown("**Источник данных**")
+    source = st.radio("Источник данных", ["Демо", "Реальные результаты"], index=1 if live_results_exist() else 0, label_visibility="collapsed")
+    if source == "Демо":
+        st.caption("Вымышленные данные, без запросов к API.")
+    else:
+        st.caption("Сохранённые данные. Новые запросы с этой страницы не запускаются.")
+    st.divider()
+    st.caption("Канада  /  английский  /  мобильная выдача")
+
+is_demo = source == "Демо"
+mode_label = "ДЕМО" if is_demo else "РЕАЛЬНЫЕ ДАННЫЕ"
+st.markdown(f'''<div class="topbar"><div class="brand"><span class="brand-mark">✳</span> affiliate finder <span class="brand-sub">поиск партнёров</span></div><div class="top-meta"><span class="pill">🇨🇦 &nbsp; Канада / EN / мобильная выдача</span><span class="pill"><span class="dot"></span>{mode_label}</span></div></div>''', unsafe_allow_html=True)
+
+with connect("data/demo.db" if is_demo else "data/live.db") as conn:
+    review_path = Path("results/independent-review-2026-11-26.json")
+    supplemental = json.loads(review_path.read_text(encoding="utf-8")) if not is_demo and review_path.is_file() else {}
+    contact_links = {}
+    cached_rows = conn.execute("""SELECT c.url, c.content, c.charset FROM page_cache c
+        JOIN pages p ON p.url=c.url WHERE p.status='complete' AND p.relevance='yes'""").fetchall()
+    for cached in cached_rows:
+        contact_link = contact_page_from_cache(cached['content'], cached['charset'], cached['url'])
+        if contact_link:
+            contact_links[cached['url']] = contact_link
+    rows = conn.execute("""SELECT o.day AS Date, o.keyword AS Keyword, o.position AS Position, o.domain AS Domain,
+        o.url AS URL, COALESCE(p.relevance, 'needs_review') AS Relevance, p.brands_json AS Brands,
+        COALESCE(p.contact, '') AS Contact, COALESCE(p.status, 'pending') AS Status,
+        p.evidence_json AS Evidence, COALESCE(p.error, '') AS Error, COALESCE(p.analysis_version, '') AS AnalysisVersion,
+        d.from_web_ranks AS WebRanks, d.verification_requested AS VerificationRequested,
+        ps.source AS PageSource,
+        COALESCE((SELECT email FROM outreach_contact_candidates x WHERE x.page_url=o.url ORDER BY x.observed_at DESC,x.email,x.source_url LIMIT 1),'') AS ContactCandidate,
+        COALESCE((SELECT source_url FROM outreach_contact_candidates x WHERE x.page_url=o.url ORDER BY x.observed_at DESC,x.email,x.source_url LIMIT 1),'') AS ContactCandidateSource
+        FROM observations o LEFT JOIN pages p ON o.url=p.url
+        LEFT JOIN serp_diagnostics d ON d.run_id=o.run_id AND d.keyword=o.keyword
+        LEFT JOIN page_cache_provenance ps ON ps.url=o.url
+        ORDER BY o.day DESC, o.keyword, o.position""").fetchall()
+    partial_rows = [] if is_demo else conn.execute("""SELECT o.run_id AS Run, o.day AS Date, o.keyword AS Keyword,
+        o.position AS Position, o.domain AS Domain, o.url AS URL,
+        COALESCE(p.status, 'pending') AS Status, p.relevance AS Relevance,
+        p.brands_json AS Brands, p.contact AS Contact, p.evidence_json AS Evidence,
+        COALESCE(p.error, '') AS Note
+        FROM partial_observations o LEFT JOIN pages p ON p.url=o.url
+        ORDER BY o.run_id DESC, o.keyword, o.position""").fetchall()
+    displayed = []
+    for row in rows:
+        item = dict(row)
+        review = supplemental.get(item['URL']) if item['Status'] != 'complete' else None
+        if review:
+            item['Relevance'] = review['relevance']
+            item['Brands'] = json.dumps(review.get('brands', []), ensure_ascii=False)
+            item['Contact'] = review.get('contact', '')
+            item['Status'] = 'supplemental'
+            item['Error'] = ''
+        item['Review note'] = review.get('note', '') if review else ''
+        item['SERP source'] = 'fictional_demo' if is_demo else serp_provenance(item['Position'], item.pop('WebRanks'), item.pop('VerificationRequested'))
+        item['Page source'] = 'fictional_demo' if is_demo else (item.pop('PageSource') or 'direct_or_unknown')
+        item['Public contact candidate'] = item.pop('ContactCandidate', '')
+        item['Contact candidate source'] = item.pop('ContactCandidateSource', '')
+        item['Analysis version'] = item.pop('AnalysisVersion', '')
+        item['Contact page'] = review.get('contact_page', '') if review and review.get('contact_page') else contact_links.get(item['URL'], '')
+        item.pop('WebRanks', None)
+        item.pop('VerificationRequested', None)
+        item.pop('PageSource', None)
+        displayed.append(item)
+    frame = pd.DataFrame(displayed, columns=["Date", "Keyword", "Position", "Domain", "URL", "Relevance", "Brands", "Contact", "Status", "Evidence", "Error", "SERP source", "Page source", "Public contact candidate", "Contact candidate source", "Analysis version", "Contact page", "Review note"])
+    if not frame.empty:
+        frame["Brands"] = frame["Brands"].apply(lambda value: ", ".join(json.loads(value)) if isinstance(value, str) and value else "")
+        frame["Evidence"] = frame["Evidence"].apply(lambda value: json.loads(value) if isinstance(value, str) and value else "")
+        latest = frame["Date"].max()
+        current = frame[frame["Date"] == latest]
+    else:
+        latest = None
+        current = frame
+        if partial_rows:
+            partial_frame = pd.DataFrame([dict(row) for row in partial_rows])
+            current = partial_frame[partial_frame["Run"] == partial_frame["Run"].max()].copy()
+            current["Relevance"] = current["Relevance"].fillna("needs_review")
+            latest = current["Date"].max()
+
+    st.markdown('''<div class="eyebrow">✳ &nbsp; Google · Канада · мобильная выдача</div><div class="hero-title">Найдите площадки<br><em>для размещения.</em></div><p class="hero-copy">Позиции по поисковым запросам, оценка площадок, бренды и контакты — в одном месте.</p>''', unsafe_allow_html=True)
+    if is_demo:
+        st.info("Демо: ниже вымышленные примеры. Выберите «Реальные результаты» в боковом меню, чтобы увидеть сохранённый поиск.")
+        if st.button("Обновить демо", type="primary"):
+            result = run_offline(conn, date.today().isoformat())
+            if result["status"] == "complete":
+                st.toast(f"Демо обновлено: {result['observations']} позиций.")
+                st.rerun()
+            else:
+                st.warning("Некоторые страницы демо требуют проверки.")
+
+st.markdown('''<div class="section-top"><div><div class="section-label">Обзор результатов</div></div></div>''', unsafe_allow_html=True)
+a, b, c, d = st.columns(4)
+a.metric("ЗАПРОСЫ", str(current["Keyword"].nunique()))
+b.metric("ПОЗИЦИИ", str(len(current)))
+c.metric("СТРАНИЦЫ", str(current["URL"].nunique()))
+d.metric("ВОЗМОЖНЫЕ ПЛОЩАДКИ", str(current.loc[(current["Relevance"] == "yes") & (current["Status"].isin(["complete", "supplemental"])), "URL"].nunique()), help="Предварительная оценка AI или дополнительная проверка. Пригодность площадки нужно подтвердить.")
+
+unique_pages = current.drop_duplicates(subset=["URL"])
+complete_pages = unique_pages[unique_pages["Status"] == "complete"]
+supplemental_pages = unique_pages[unique_pages["Status"] == "supplemental"]
+unprocessed_pages = len(unique_pages) - len(complete_pages) - len(supplemental_pages)
+uncertain_pages = int((unique_pages[unique_pages["Status"].isin(["complete", "supplemental"])]["Relevance"] == "needs_review").sum())
+coverage = len(complete_pages) / len(unique_pages) if len(unique_pages) else 0.0
+st.progress(coverage, text=f"Проанализировано страниц: {len(complete_pages)} из {len(unique_pages)}")
+st.caption(f"Дополнительная проверка по индексированным страницам: {len(supplemental_pages)} · Нет данных: {unprocessed_pages} · Неоднозначная оценка: {uncertain_pages}. Дополнительная проверка не заменяет автоматический AI-анализ.")
+if not is_demo and "SERP source" in current.columns:
+    restored = int((current["SERP source"] == "restored_from_google_web").sum())
+    st.warning(f"{restored} из {len(current)} позиций провайдер восстановил через Google Web: они могут отличаться от исходной мобильной выдачи. Оценки AI и контакты требуют проверки.")
+
+st.markdown('''<div class="section-top"><div><div class="section-label">Результаты поиска</div><div class="section-sub">Откройте страницу, проверьте оценку и сохраните подходящие результаты.</div></div></div>''', unsafe_allow_html=True)
+show_history = st.checkbox("Показать предыдущие даты", value=False)
+explorer = frame if show_history or latest is None else frame[frame["Date"] == latest]
+video_count = int(explorer["URL"].map(is_video_result).sum())
+if video_count:
+    include_video = st.checkbox(f"Показать видео в выдаче ({video_count})", value=False, help="Видео сохранилось в поисковой выдаче, но по умолчанию исключено из списка площадок.")
+    if not include_video:
+        explorer = explorer[~explorer["URL"].map(is_video_result)]
+view = st.radio("Показать", ["Все результаты", "Возможные площадки", "Нужна проверка", "Не подходят"], horizontal=True)
+if view == "Возможные площадки":
+    explorer = explorer[(explorer["Status"].isin(["complete", "supplemental"])) & (explorer["Relevance"] == "yes")]
+elif view == "Нужна проверка":
+    explorer = explorer[(~explorer["Status"].isin(["complete", "supplemental"])) | (explorer["Relevance"] == "needs_review")]
+elif view == "Не подходят":
+    explorer = explorer[(explorer["Status"].isin(["complete", "supplemental"])) & (explorer["Relevance"] == "no")]
+filters_a, filters_b = st.columns([2, 1])
+with filters_a:
+    query = st.text_input("Поиск", placeholder="Домен, запрос, бренд или контакт", label_visibility="collapsed")
+with filters_b:
+    keywords = ["Все запросы"] + sorted(frame["Keyword"].unique().tolist())
+    default_keyword = keywords.index("online casino canada") if "online casino canada" in keywords else 0
+    selected_keyword = st.selectbox("Поисковый запрос", keywords, index=default_keyword, label_visibility="collapsed")
+filtered = explorer
+if selected_keyword != "Все запросы":
+    filtered = filtered[filtered["Keyword"] == selected_keyword]
+if query.strip():
+    needle = query.strip().casefold()
+    mask = filtered[["Domain", "Keyword", "Brands", "Contact", "Public contact candidate"]].fillna("").apply(lambda row: needle in " ".join(str(value) for value in row).casefold(), axis=1)
+    filtered = filtered[mask]
+filtered = filtered.sort_values(["Date", "Keyword", "Position"], ascending=[False, True, True], kind="stable")
+
+relevance_labels = {"yes": "Возможно подходит", "no": "Не подходит", "needs_review": "Нужна проверка"}
+column_labels = {"URL": "Ссылка на страницу", "Domain": "Домен", "Position": "Позиция", "Relevance": "Оценка", "Brands": "Бренды", "Contact": "Контакт на странице", "Contact page": "Страница контактов", "Public contact candidate": "Возможный контакт", "Contact candidate source": "Источник контакта", "Keyword": "Запрос", "Date": "Дата", "Status": "Способ оценки", "Evidence": "Подтверждение", "Error": "Причина проверки", "SERP source": "Источник позиции", "Page source": "Источник страницы", "Analysis version": "Версия анализа", "Review note": "Примечание к проверке"}
+if filtered.empty:
+    st.info("Результатов по выбранным условиям нет. Измените фильтр или поисковый запрос.")
+else:
+    st.caption(f"Найдено позиций: {len(filtered)} · Уникальных страниц: {filtered['URL'].nunique()}")
+    st.caption("Позиции считаются отдельно для каждого запроса. Ссылка на контакты найдена на сайте; её доступность и назначение для партнёрств не подтверждены.")
+    presentation = filtered.copy()
+    presentation["Relevance"] = presentation.apply(lambda row: "Нет анализа" if row["Status"] not in ("complete", "supplemental") else relevance_labels.get(row["Relevance"], "Нужна проверка"), axis=1)
+    presentation["Status"] = presentation["Status"].map({"complete": "AI-анализ", "supplemental": "Дополнительная проверка, 26.11.2026", "pending": "Ожидает", "needs_review": "Нет анализа"}).fillna("Нет анализа")
+    presentation = presentation.rename(columns=column_labels)
+    st.caption("🟢 Возможно подходит · 🟡 Нужна проверка · 🟠 Не подходит · ⚪ Нет анализа. Цвета обозначают категорию, не процент уверенности.")
+    styled = presentation.style.map(assessment_color, subset=["Оценка"])
+    columns = ["Позиция", "Ссылка на страницу", "Оценка", "Способ оценки", "Бренды", "Контакт на странице", "Страница контактов", "Возможный контакт", "Запрос", "Дата", "Домен", "Источник контакта"]
+    if selected_keyword == "Все запросы":
+        columns.remove("Запрос")
+        columns.insert(0, "Запрос")
+    st.dataframe(styled, hide_index=True, width="stretch", height=420,
+                 column_order=columns,
+                 column_config={"Ссылка на страницу": st.column_config.LinkColumn("Ссылка на страницу", display_text=r"https?://([^/]+).*"), "Страница контактов": st.column_config.LinkColumn("Страница контактов", display_text="Открыть контакты ↗"), "Источник контакта": st.column_config.LinkColumn("Источник контакта", display_text="Открыть источник ↗")})
+    with st.expander("Подробнее о странице и источниках"):
+        detail_options = filtered.drop_duplicates(subset=["URL"])
+        selected_url = st.selectbox("Выберите страницу", detail_options["URL"].tolist(), key="page_detail")
+        detail = detail_options.loc[detail_options["URL"] == selected_url].iloc[0]
+        st.link_button("Открыть страницу ↗", str(detail["URL"]))
+        status = "Нет принятого анализа" if detail["Status"] not in ("complete", "supplemental") else relevance_labels.get(detail["Relevance"], "Нужна проверка")
+        st.write("**Оценка:** " + status)
+        if detail["Status"] not in ("complete", "supplemental"):
+            st.info(friendly_error(detail["Error"]))
+        else:
+            st.write("**Бренды:** " + (str(detail["Brands"]) if detail["Brands"] else "Не найдены при анализе"))
+            st.write("**Контакт на странице:**")
+            show_contact(detail["Contact"])
+        if detail["Review note"]:
+            st.caption("Дополнительная проверка: " + detail["Review note"])
+        if detail["Public contact candidate"]:
+            st.write("**Возможный контакт:**")
+            show_contact(detail["Public contact candidate"])
+            st.caption("Публичный адрес; его назначение для партнёрств не подтверждено.")
+            if detail["Contact candidate source"]:
+                st.link_button("Открыть источник контакта ↗", str(detail["Contact candidate source"]))
+        if detail["Contact page"]:
+            st.link_button("Страница контактов сайта ↗", str(detail["Contact page"]))
+            st.caption("Ссылка найдена на странице сайта; назначение для партнёрств не подтверждено.")
+        if detail["Status"] == "complete" and detail["Error"]:
+            st.caption(friendly_error(detail["Error"]))
+        if detail["Evidence"]:
+            st.caption("Подтверждение из анализа:")
+            st.json(detail["Evidence"])
+    safe = presentation.map(safe_cell)
+    csv_data = safe.to_csv(index=False).encode("utf-8-sig")
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "Результаты"
+    sheet.append(list(safe.columns))
+    for row in safe.itertuples(index=False, name=None): sheet.append(list(row))
+    for label in ("Ссылка на страницу", "Источник контакта", "Страница контактов"):
+        if label in safe.columns:
+            column = list(safe.columns).index(label) + 1
+            for row in range(2, sheet.max_row + 1):
+                cell = sheet.cell(row, column)
+                if isinstance(cell.value, str) and cell.value.startswith(("https://", "http://")):
+                    cell.hyperlink = cell.value
+                    cell.style = "Hyperlink"
+    sheet.freeze_panes = "A2"
+    sheet.auto_filter.ref = sheet.dimensions
+    output = BytesIO()
+    workbook.save(output)
+    x, y, _ = st.columns([1, 1, 4])
+    with x: st.download_button("↓ Скачать CSV", csv_data, ("demo-results.csv" if is_demo else "live-results.csv"), "text/csv", width="stretch")
+    with y: st.download_button("↓ Скачать Excel", output.getvalue(), ("demo-results.xlsx" if is_demo else "live-results.xlsx"), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", width="stretch")
+
+if partial_rows:
+    with st.expander("Неполные поисковые запуски"):
+        st.caption("Эти результаты сохранены отдельно: для них не получен полный топ-10 либо есть неразрешённые ссылки.")
+        partial_view = pd.DataFrame([dict(row) for row in partial_rows])
+        partial_view["Brands"] = partial_view["Brands"].apply(lambda value: ", ".join(json.loads(value)) if isinstance(value, str) and value else "")
+        partial_view["Relevance"] = partial_view["Relevance"].map(relevance_labels).fillna("Нет анализа")
+        partial_view = partial_view.rename(columns={**column_labels, "Run": "Запуск", "Note": "Причина проверки"})
+        st.dataframe(partial_view, hide_index=True, width="stretch", column_order=["Ссылка на страницу", "Запуск", "Дата", "Позиция", "Домен", "Запрос", "Оценка AI", "Бренды", "Причина проверки"], column_config={"Ссылка на страницу": st.column_config.LinkColumn("Ссылка на страницу", display_text="Открыть сайт ↗")})
+
+st.markdown('<div class="footer"><span>✳ &nbsp; Affiliate Finder</span><span>Просмотр сохранённых результатов без новых запросов</span></div>', unsafe_allow_html=True)

@@ -29,6 +29,12 @@ def _check_interstitial(text: str, title: str = "") -> None:
     if len(text) > 3_000:
         return
     opening = text[:1_000].casefold()
+    # Some providers return a 200 response with a browser-check page padded
+    # by navigation or legal text. The combination is specific to the gate;
+    # an ordinary article mentioning JavaScript or robots alone is not enough.
+    if ("verify that you're not a robot" in opening and
+            ("javascript is disabled" in opening or "enable javascript" in opening)):
+        raise PageError("Possible access challenge; manual review required")
     challenge = (
         "are you a robot", "êtes-vous un robot", "verify you are human",
         "checking your browser before accessing",

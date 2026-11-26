@@ -56,7 +56,13 @@ def _request_response(parts, host, port, addresses, target, timeout):
     raise FetchError(detail, transient=True) from last_error
 
 def fetch_page(url: str, timeout: int = 15, max_redirects: int = 3, *, same_origin_only: bool = False) -> tuple[bytes, str]:
-    """Fetch a public HTTP(S) page with fixed-IP connections, size/time limits, no cookies."""
+    """Fetch a public page without attributing a different site's content to its URL.
+
+    Redirects must stay on the exact hostname, except for adding/removing www.
+    Contact-page fetches use the stricter same-origin rule. Cross-subdomain and
+    cross-domain redirects need manual review; matching registrable domains is
+    deliberately not guessed from suffixes such as co.uk.
+    """
     origin = None
     for _ in range(max_redirects + 1):
         parts = urlsplit(url)
@@ -73,6 +79,8 @@ def fetch_page(url: str, timeout: int = 15, max_redirects: int = 3, *, same_orig
             origin = current_origin
         elif same_origin_only and current_origin != origin:
             raise FetchError("Cross-origin redirect blocked")
+        elif not same_origin_only and host.lower().removeprefix("www.") != origin[1].removeprefix("www."):
+            raise FetchError("Cross-host redirect requires manual review")
         addresses = _public_addresses(host, port)
         # HTTP request targets are ASCII; preserve existing escapes and encode Unicode.
         target = quote(parts.path or "/", safe="/%:@!$&'()*+,;=-._~")

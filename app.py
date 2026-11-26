@@ -140,7 +140,7 @@ def contact_page_from_cache(content, charset, url):
 
 with st.sidebar:
     st.markdown("### ✳ Affiliate Finder")
-    st.caption("Поиск площадок для размещения")
+    st.caption("Поиск площадок для размещения казино-брендов")
     st.divider()
     st.markdown("**Источник данных**")
     source = st.radio("Источник данных", ["Демо", "Реальные результаты"], index=1 if live_results_exist() else 0, label_visibility="collapsed")
@@ -220,7 +220,7 @@ with connect("data/demo.db" if is_demo else "data/live.db") as conn:
             current["Relevance"] = current["Relevance"].fillna("needs_review")
             latest = current["Date"].max()
 
-    st.markdown('''<div class="eyebrow">✳ &nbsp; GOOGLE · КАНАДА · МОБИЛЬНЫЕ УСТРОЙСТВА</div><div class="hero-title">Поиск&nbsp;<em>площадок</em></div><p class="hero-copy">Позиции, бренды и контакты для размещения.</p>''', unsafe_allow_html=True)
+    st.markdown('''<div class="eyebrow">✳ &nbsp; GOOGLE · КАНАДА · МОБИЛЬНЫЕ УСТРОЙСТВА</div><div class="hero-title">Поиск&nbsp;<em>площадок</em></div><p class="hero-copy">Позиции, бренды и контакты для размещения казино-брендов.</p>''', unsafe_allow_html=True)
     if is_demo:
         st.info("Демо: ниже вымышленные примеры. Выберите «Реальные результаты» в боковом меню, чтобы увидеть сохранённый поиск.")
         if st.button("Обновить демо", type="primary"):
@@ -254,16 +254,17 @@ show_history = st.checkbox("Показать предыдущие даты", val
 explorer = frame if show_history or latest is None else frame[frame["Date"] == latest]
 video_count = int(explorer["URL"].map(is_video_result).sum())
 if video_count:
-    include_video = st.checkbox(f"Показать видео в выдаче ({video_count})", value=False, help="Видео сохранилось в поисковой выдаче, но по умолчанию исключено из списка площадок.")
+    include_video = st.checkbox(f"Показать результаты YouTube: {video_count}", value=False, help="Столько ссылок на видео нашлось в сохранённой выдаче. Они скрыты, потому что обычно не являются площадками для размещения.")
     if not include_video:
         explorer = explorer[~explorer["URL"].map(is_video_result)]
-view = st.radio("Показать", ["Все результаты", "Возможные площадки", "Нужна проверка", "Не подходят"], horizontal=True)
-if view == "Возможные площадки":
-    explorer = explorer[(explorer["Status"].isin(["complete", "supplemental"])) & (explorer["Relevance"] == "yes")]
-elif view == "Нужна проверка":
-    explorer = explorer[(~explorer["Status"].isin(["complete", "supplemental"])) | (explorer["Relevance"] == "needs_review")]
-elif view == "Не подходят":
-    explorer = explorer[(explorer["Status"].isin(["complete", "supplemental"])) & (explorer["Relevance"] == "no")]
+categories = ["Возможные площадки", "Нужна проверка", "Не подходят", "Нет анализа"]
+selected_categories = st.multiselect("Показать", categories, default=["Возможные площадки"], help="Можно выбрать несколько категорий одновременно. Все результаты доступны через этот фильтр.")
+processed = explorer["Status"].isin(["complete", "supplemental"])
+category = pd.Series("Нет анализа", index=explorer.index)
+category.loc[processed & (explorer["Relevance"] == "yes")] = "Возможные площадки"
+category.loc[processed & (explorer["Relevance"] == "no")] = "Не подходят"
+category.loc[processed & (explorer["Relevance"] == "needs_review")] = "Нужна проверка"
+explorer = explorer[category.isin(selected_categories)]
 only_contacts = st.checkbox("Только с контактом или страницей контактов", value=False, help="Показывает адреса, найденные на странице, возможные публичные контакты и ссылки на контактные страницы. Перед обращением их нужно проверить.")
 if only_contacts:
     explorer = explorer[(explorer["Contact"].fillna("") != "") | (explorer["Public contact candidate"].fillna("") != "") | (explorer["Contact page"].fillna("") != "")]
@@ -293,11 +294,13 @@ else:
         st.caption("Позиции считаются отдельно для каждого запроса.")
     presentation = filtered.copy()
     presentation["Relevance"] = presentation.apply(lambda row: "Нет анализа" if row["Status"] not in ("complete", "supplemental") else relevance_labels.get(row["Relevance"], "Нужна проверка"), axis=1)
+    presentation["Brands"] = presentation.apply(lambda row: row["Brands"] or ("Не найдены при анализе" if row["Status"] in ("complete", "supplemental") else "Не удалось определить"), axis=1)
+    presentation["Public contact candidate"] = presentation.apply(lambda row: row["Public contact candidate"] or row["Contact"], axis=1)
     presentation["Status"] = presentation["Status"].map({"complete": "AI-анализ", "supplemental": "Дополнительная проверка, 26.11.2026", "pending": "Ожидает", "needs_review": "Нет анализа"}).fillna("Нет анализа")
     presentation = presentation.rename(columns=column_labels)
     st.caption("🟢 Возможно подходит · 🟡 Проверить · 🟠 Не подходит · ⚪ Нет анализа")
     styled = presentation.style.map(assessment_color, subset=["Оценка"])
-    columns = ["Позиция", "Ссылка на страницу", "Оценка", "Бренды", "Контакт на странице", "Возможный контакт", "Страница контактов", "Способ оценки", "Запрос", "Дата", "Домен", "Источник контакта"]
+    columns = ["Позиция", "Ссылка на страницу", "Оценка", "Бренды", "Возможный контакт", "Страница контактов", "Запрос", "Дата"]
     if selected_keyword == "Все запросы":
         columns.remove("Запрос")
         columns.insert(0, "Запрос")
@@ -308,36 +311,37 @@ else:
         detail_options = filtered.drop_duplicates(subset=["URL"])
         selected_url = st.selectbox("Выберите страницу", detail_options["URL"].tolist(), key="page_detail")
         detail = detail_options.loc[detail_options["URL"] == selected_url].iloc[0]
-        st.markdown(f'''<div class="detail-heading">{escape(str(detail["Domain"]))}</div><div class="detail-sub">Позиция {escape(str(detail["Position"]))} · {escape(str(detail["Keyword"]))} · {escape(str(detail["Date"]))}</div>''', unsafe_allow_html=True)
-        st.link_button("Открыть страницу ↗", str(detail["URL"]))
+        url = escape(str(detail["URL"]), quote=True)
+        domain = escape(str(detail["Domain"]))
+        st.markdown(f'''<div class="detail-heading"><a href="{url}" target="_blank" rel="noopener noreferrer">{domain} ↗</a></div><div class="detail-sub">Позиция {escape(str(detail["Position"]))} · {escape(str(detail["Keyword"]))} · {escape(str(detail["Date"]))}</div>''', unsafe_allow_html=True)
         status = "Нет принятого анализа" if detail["Status"] not in ("complete", "supplemental") else relevance_labels.get(detail["Relevance"], "Нужна проверка")
         st.write("**Оценка:** " + status)
         if detail["Status"] not in ("complete", "supplemental"):
             st.info(friendly_error(detail["Error"]))
+            st.write("**Бренды:** Не удалось определить")
         else:
             st.write("**Бренды:** " + (str(detail["Brands"]) if detail["Brands"] else "Не найдены при анализе"))
-            if detail["Contact"] or not (detail["Public contact candidate"] or detail["Contact page"]):
-                st.write("**Контакт на странице:**")
-                show_contact(detail["Contact"])
-        if detail["Review note"]:
-            st.caption("Дополнительная проверка: " + detail["Review note"])
-        if detail["Public contact candidate"]:
+            if detail["Review note"]:
+                st.caption("Основание оценки: " + detail["Review note"])
+            elif detail["Evidence"]:
+                st.caption("Подтверждение на странице: " + str(detail["Evidence"]))
+            elif detail["Relevance"] == "no":
+                st.caption("Причина оценки не сохранена, требуется дополнительная проверка.")
+        contact = detail["Public contact candidate"] or detail["Contact"]
+        if contact:
             st.write("**Возможный контакт:**")
-            show_contact(detail["Public contact candidate"])
-            st.caption("Публичный адрес; его назначение для партнёрств не подтверждено.")
-            if detail["Contact candidate source"]:
-                st.link_button("Открыть источник контакта ↗", str(detail["Contact candidate source"]))
-        if detail["Contact page"] and detail["Contact page"] != detail["Contact candidate source"]:
-            st.link_button("Страница контактов сайта ↗", str(detail["Contact page"]))
-            st.caption("Ссылка найдена на странице сайта; назначение для партнёрств не подтверждено.")
+            show_contact(contact)
+            st.caption("Публичный адрес, его назначение для партнёрств не подтверждено.")
+        else:
+            st.write("**Возможный контакт:** " + ("Не найден" if detail["Status"] in ("complete", "supplemental") else "Не удалось определить"))
+        contact_page = detail["Contact page"]
+        if contact_page:
+            st.link_button("Страница контактов ↗", str(contact_page))
         if detail["Status"] == "complete" and detail["Error"]:
             st.caption(friendly_error(detail["Error"]))
         source_labels = {"restored_from_google_web": "Восстановлена провайдером через Google Web", "original_or_verification_unavailable": "Исходная либо результат проверки недоступен", "verification_not_requested": "Проверка источника не запрашивалась", "unknown": "Неизвестен", "fictional_demo": "Демо-данные"}
         st.caption("Источник позиции: " + source_labels.get(str(detail["SERP source"]), str(detail["SERP source"])))
         st.caption("Источник содержимого: " + str(detail["Page source"]))
-        if detail["Evidence"]:
-            st.caption("Подтверждение из анализа:")
-            st.json(detail["Evidence"])
     safe = presentation.map(safe_cell)
     csv_data = safe.to_csv(index=False).encode("utf-8-sig")
     workbook = Workbook()
@@ -368,6 +372,7 @@ if partial_rows:
         partial_view["Brands"] = partial_view["Brands"].apply(lambda value: ", ".join(json.loads(value)) if isinstance(value, str) and value else "")
         partial_view["Relevance"] = partial_view["Relevance"].map(relevance_labels).fillna("Нет анализа")
         partial_view = partial_view.rename(columns={**column_labels, "Run": "Запуск", "Note": "Причина проверки"})
-        st.dataframe(partial_view, hide_index=True, width="stretch", column_order=["Ссылка на страницу", "Запуск", "Дата", "Позиция", "Домен", "Запрос", "Оценка", "Бренды", "Причина проверки"], column_config={"Ссылка на страницу": st.column_config.LinkColumn("Ссылка на страницу", display_text="Открыть сайт ↗")})
+        st.dataframe(partial_view, hide_index=True, width="stretch", column_order=["Ссылка на страницу", "Запуск", "Дата", "Позиция", "Запрос", "Оценка", "Бренды", "Причина проверки"], column_config={"Ссылка на страницу": st.column_config.LinkColumn("Ссылка на страницу", display_text=r"https?://([^/]+).*")})
 
 st.markdown('<div class="footer"><span>✳ &nbsp; Affiliate Finder</span><span>Просмотр сохранённых результатов без новых запросов</span></div>', unsafe_allow_html=True)
+

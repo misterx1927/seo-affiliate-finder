@@ -15,6 +15,7 @@ from src.database import connect
 from src.exporter import safe_cell, serp_provenance
 from src.pipeline import run_offline
 from src.contact_discovery import contact_pages
+from src.snapshot import load_snapshot
 
 st.set_page_config(page_title="Affiliate Finder | Search intelligence", page_icon="✳", layout="wide", initial_sidebar_state="collapsed")
 st.markdown("""<style>
@@ -143,7 +144,7 @@ with st.sidebar:
     st.caption("Поиск площадок для размещения казино-брендов")
     st.divider()
     st.markdown("**Источник данных**")
-    source = st.radio("Источник данных", ["Демо", "Реальные результаты"], index=1 if live_results_exist() else 0, label_visibility="collapsed")
+    source = st.radio("Источник данных", ["Демо", "Реальные результаты", "Сохранённый прогон"], index=1 if live_results_exist() else 2, label_visibility="collapsed")
     if source == "Демо":
         st.caption("Вымышленные данные, без запросов к API.")
     else:
@@ -152,7 +153,8 @@ with st.sidebar:
     st.caption("Канада  /  английский  /  мобильная выдача")
 
 is_demo = source == "Демо"
-mode_label = "ДЕМО" if is_demo else "РЕАЛЬНЫЕ ДАННЫЕ"
+is_snapshot = source == "Сохранённый прогон"
+mode_label = "ДЕМО" if is_demo else ("СОХРАНЁННЫЙ ПРОГОН" if is_snapshot else "РЕАЛЬНЫЕ ДАННЫЕ")
 st.markdown(f'''<div class="topbar"><div class="brand"><span class="brand-mark">✳</span> affiliate finder <span class="brand-sub">поиск партнёров</span></div><div class="top-meta"><span class="pill">🇨🇦 &nbsp; Канада / EN / мобильная выдача</span><span class="pill"><span class="dot"></span>{mode_label}</span></div></div>''', unsafe_allow_html=True)
 
 with connect("data/demo.db" if is_demo else "data/live.db") as conn:
@@ -179,7 +181,9 @@ with connect("data/demo.db" if is_demo else "data/live.db") as conn:
         LEFT JOIN serp_diagnostics d ON d.run_id=o.run_id AND d.keyword=o.keyword
         LEFT JOIN page_cache_provenance ps ON ps.url=o.url
         ORDER BY o.day DESC, o.keyword, o.position""").fetchall()
-    partial_rows = [] if is_demo else conn.execute("""SELECT o.run_id AS Run, o.day AS Date, o.keyword AS Keyword,
+    if is_snapshot:
+        rows = load_snapshot("results/run-7-reviewed.csv")
+    partial_rows = [] if is_demo or is_snapshot else conn.execute("""SELECT o.run_id AS Run, o.day AS Date, o.keyword AS Keyword,
         o.position AS Position, o.domain AS Domain, o.url AS URL,
         COALESCE(p.status, 'pending') AS Status, p.relevance AS Relevance,
         p.brands_json AS Brands, p.contact AS Contact, p.evidence_json AS Evidence,
@@ -197,7 +201,7 @@ with connect("data/demo.db" if is_demo else "data/live.db") as conn:
             item['Status'] = 'supplemental'
             item['Error'] = ''
         item['Review note'] = review.get('note', '') if review else ''
-        item['SERP source'] = 'fictional_demo' if is_demo else serp_provenance(item['Position'], item.pop('WebRanks'), item.pop('VerificationRequested'))
+        item['SERP source'] = 'fictional_demo' if is_demo else (item.pop('SnapshotSerpSource') if is_snapshot else serp_provenance(item['Position'], item.pop('WebRanks'), item.pop('VerificationRequested')))
         item['Page source'] = 'fictional_demo' if is_demo else ('Индексированная версия (дополнительная проверка)' if review else (item.pop('PageSource') or 'direct_or_unknown'))
         item['Public contact candidate'] = (review.get('contact', '') if review else '') or item.pop('ContactCandidate', '')
         item['Contact candidate source'] = (review.get('contact_page', '') if review else '') or item.pop('ContactCandidateSource', '')

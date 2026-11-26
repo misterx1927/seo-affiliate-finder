@@ -12,7 +12,7 @@ py -m venv .venv
 .\.venv\Scripts\python -m streamlit run app.py
 ```
 
-Open the displayed URL, select **Демо**, and click **Обновить демо**. The demo uses fictional data and makes no paid calls. The dashboard also displays locally collected live results, filters, CSV/Excel exports and pages needing review. A fresh checkout has no live database: see the included [recorded results](results/) instead. This setup was tested on Windows with Python 3.13 in an isolated copy without credentials or databases.
+Open the displayed URL. A fresh checkout defaults to **Сохранённый прогон**, showing the included [recorded results](results/) without API keys or paid calls. Alternatively, select **Демо** and click **Обновить демо** for fictional data. The dashboard also displays locally collected live results, filters, CSV/Excel exports and pages needing review. This setup was tested on Windows with Python 3.13 in an isolated copy without credentials or databases.
 
 ## Collect real data
 

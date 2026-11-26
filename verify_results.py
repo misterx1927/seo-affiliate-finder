@@ -4,6 +4,7 @@ from collections import Counter, defaultdict
 import csv
 import json
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from src.keywords import KEYWORDS
 
@@ -21,8 +22,18 @@ def inspect(path: Path) -> tuple[dict, list[str]]:
             keyword, url = row["keyword"], row["url"]
             if not keyword or not url or not row["date"]:
                 raise ValueError("empty keyword, URL or date")
+            parts = urlsplit(url)
+            if parts.scheme not in ("http", "https") or not parts.hostname or parts.username or parts.password:
+                raise ValueError("invalid page URL")
+            if row.get("domain") and row["domain"].lower() != parts.hostname.lower():
+                raise ValueError("domain does not match page URL")
             positions[(row["date"], keyword)].append(position)
             sources[row.get("serp_provenance", "unknown")] += 1
+            previous = by_url.get(url)
+            if previous:
+                for field in ("analysis_status", "relevance", "brands", "contact"):
+                    if field in row and row.get(field) != previous.get(field):
+                        errors.append(f"Conflicting {field} for repeated URL: {url}")
             by_url[url] = row
         except (KeyError, TypeError, ValueError) as exc:
             errors.append(f"Invalid row: {exc}")

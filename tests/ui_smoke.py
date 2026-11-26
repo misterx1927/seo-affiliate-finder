@@ -36,6 +36,10 @@ next(item for item in app.multiselect if item.label == "Показать").set_v
 contacts = app.dataframe[0].value["Возможный контакт"].values
 assert "marketing@casinoslists.com" in contacts
 assert "marketing@slotsmate.com" in contacts
+assert "ad.ops@livescore.com" in contacts
+assert "info@cflnewshub.com" in contacts
+assert "См. страницу контактов" in contacts
+assert not any(value == "" for value in contacts)
 next(item for item in app.multiselect if item.label == "Показать").set_value([]).run(timeout=30)
 assert app.dataframe and len(app.dataframe[0].value) > 0
 app.selectbox[0].select("Все запросы").run(timeout=30)

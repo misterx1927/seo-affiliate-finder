@@ -43,6 +43,7 @@ class DiagnosticTests(unittest.TestCase):
     def test_ungroup_is_explicit(self):
         self.assertFalse(diagnostic_task(ungroup=True)["group_organic_results"])
         self.assertNotIn("group_organic_results", diagnostic_task())
+        self.assertEqual(diagnostic_task(keyword="interac casino")["keyword"], "interac casino")
 
     def test_malformed_response_is_not_retried(self):
         calls = []

@@ -52,6 +52,10 @@ p {line-height:1.55;}
 .art-footer {margin-top:23px;color:#d4e9c9;font-size:11px;position:relative;z-index:1;}
 .section-top {display:flex;justify-content:space-between;align-items:end;margin:36px 0 15px;gap:12px;}
 .section-label {font:700 18px 'Manrope',sans-serif;color:#edf4ea;letter-spacing:-.035em;}
+.results-summary {display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px;padding:14px 16px;margin:6px 0 2px;border:1px solid #304436;border-radius:12px;background:#131e17;}
+.results-count {color:#e8f2e8;font-size:13px;font-weight:700;}
+.results-legend {display:flex;flex-wrap:wrap;gap:7px 14px;color:#afbeb2;font-size:12px;}
+.results-legend span {white-space:nowrap;}
 .section-sub {color:#7f9183;font-size:12px;margin-top:5px;}
 .section-side {font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:#819286;white-space:nowrap;}
 [data-testid="stMetric"] {background:linear-gradient(155deg,#1e2d22,#121b15);border:1px solid #304535;border-radius:16px;padding:20px 20px 18px;min-height:116px;box-shadow:0 8px 24px #0002;}
@@ -250,7 +254,7 @@ d.metric("ВОЗМОЖНЫЕ ПЛОЩАДКИ", str(current.loc[(current["Releva
 
 if not is_demo and "SERP source" in current.columns:
     restored = int((current["SERP source"] == "restored_from_google_web").sum())
-    st.caption(f"{restored} из {len(current)} позиций восстановлены через Google Web и могут отличаться от мобильной выдачи. Дополнительная проверка не является AI-анализом; контакты требуют подтверждения.")
+    st.caption(f"{restored} из {len(current)} позиций восстановлены через Google Web и могут отличаться от мобильной выдачи. Дополнительная проверка не является AI-анализом, контакты требуют подтверждения.")
 
 st.markdown('''<div class="section-top"><div><div class="section-label">Результаты поиска</div></div></div>''', unsafe_allow_html=True)
 show_history = st.checkbox("Показать предыдущие даты", value=False, help="Добавить результаты других дат для сравнения.") if frame["Date"].nunique() > 1 else False
@@ -260,7 +264,7 @@ explorer = frame if show_history or latest is None else frame[frame["Date"] == l
 explorer = explorer.loc[~explorer["URL"].map(lambda url: (urlsplit(str(url)).hostname or "").lower().rstrip(".") in {"trustpilot.com", "www.trustpilot.com", "ca.trustpilot.com"} or (urlsplit(str(url)).hostname or "").lower().rstrip(".").endswith(".trustpilot.com")).astype(bool)]
 explorer = explorer.loc[~explorer["URL"].map(is_video_result).astype(bool)]
 categories = ["Возможные площадки", "Нужна проверка", "Не подходят", "Нет анализа"]
-selected_categories = st.multiselect("Показать", categories, default=["Возможные площадки"], key="prospect_categories_v3", placeholder="Все категории", help="Можно выбрать несколько категорий одновременно. Trustpilot исключён из списка площадок; исходная выдача сохранена в результатах прогона.")
+selected_categories = st.multiselect("Показать", categories, default=["Возможные площадки"], key="prospect_categories_v3", placeholder="Все категории", help="Можно выбрать несколько категорий одновременно. Trustpilot исключён из списка площадок, исходная выдача сохранена в результатах прогона.")
 processed = explorer["Status"].isin(["complete", "supplemental"])
 category = pd.Series("Нет анализа", index=explorer.index)
 category.loc[processed & (explorer["Relevance"] == "yes")] = "Возможные площадки"
@@ -283,9 +287,9 @@ column_labels = {"URL": "Ссылка на страницу", "Domain": "Дом�
 if filtered.empty:
     st.info("Нет результатов с выбранными фильтрами. Измените категории, запрос или снимите ограничение по контактам.")
 else:
-    st.caption(f"Найдено позиций: {len(filtered)} · Уникальных страниц: {filtered['URL'].nunique()}")
+    st.markdown(f'''<div class="results-summary"><div class="results-count">Позиций: {len(filtered)} &nbsp; · &nbsp; Страниц: {filtered['URL'].nunique()}</div><div class="results-legend"><span>🟢 Возможно подходит</span><span>🟡 Проверить</span><span>🟠 Не подходит</span><span>⚪ Нет анализа</span></div></div>''', unsafe_allow_html=True)
     if selected_keyword == "Все запросы":
-        st.caption("№ — номер строки; позиция Google считается отдельно для каждого запроса. Фильтры скрывают неподходящие результаты.")
+        st.caption("№ - номер строки, место в Google указано отдельно для каждого запроса. Фильтры могут скрывать часть результатов.")
     presentation = filtered.copy()
     presentation.insert(0, "№", range(1, len(presentation) + 1))
     # Count coverage across the full latest snapshot, before prospect filters.
@@ -298,10 +302,9 @@ else:
     presentation["Public contact candidate"] = presentation.apply(lambda row: row["Public contact candidate"] or row["Contact"] or ("См. страницу контактов" if row["Contact page"] else "Не найден"), axis=1)
     presentation["Status"] = presentation["Status"].map({"complete": "AI-анализ", "supplemental": "Дополнительная проверка, 26.11.2026", "pending": "Ожидает", "needs_review": "Нет анализа"}).fillna("Нет анализа")
     presentation = presentation.rename(columns=column_labels)
-    st.caption("🟢 Возможно подходит · 🟡 Проверить · 🟠 Не подходит · ⚪ Нет анализа")
     styled = presentation.style.map(assessment_color, subset=["Оценка"])
     columns = ["№", "Ссылка на страницу", "Позиция", "Запрос", "Запросов в топ-10", "Возможный контакт", "Страница контактов", "Оценка", "Бренды", "Дата"]
-    st.caption("Запросов в топ-10 — по скольким из наших 10 запросов встретился домен; это не посещаемость и не объяснение позиции Google.")
+    st.caption("Запросов в топ-10 - по скольким из 10 запросов найден домен, это не показатель посещаемости и не причина позиции в Google.")
     st.dataframe(styled, hide_index=True, width="stretch", height=420,
                  column_order=columns,
                  column_config={"№": st.column_config.NumberColumn("№", width=40), "Позиция": st.column_config.NumberColumn("Место в Google", width="small"), "Ссылка на страницу": st.column_config.LinkColumn("Страница", display_text=r"https?://([^/]+).*", width=135), "Оценка": st.column_config.TextColumn("Оценка", width="medium"), "Бренды": st.column_config.TextColumn("Бренды", width="medium"), "Контакт на странице": st.column_config.TextColumn("Контакт на странице", width="medium"), "Возможный контакт": st.column_config.TextColumn("Контакт", width=170), "Страница контактов": st.column_config.LinkColumn("Страница контактов", display_text="Открыть контакты ↗"), "Источник контакта": st.column_config.LinkColumn("Источник контакта", display_text="Открыть источник ↗")})

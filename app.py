@@ -250,7 +250,7 @@ supplemental_pages = unique_pages[unique_pages["Status"] == "supplemental"]
 unprocessed_pages = len(unique_pages) - len(complete_pages) - len(supplemental_pages)
 uncertain_pages = int((unique_pages[unique_pages["Status"].isin(["complete", "supplemental"])]["Relevance"] == "needs_review").sum())
 coverage = len(complete_pages) / len(unique_pages) if len(unique_pages) else 0.0
-st.progress(coverage, text=f"Проанализировано страниц: {len(complete_pages)} из {len(unique_pages)}")
+st.progress(coverage, text=f"AI-анализ: {len(complete_pages)} из {len(unique_pages)} страниц")
 st.caption(f"Дополнительная проверка: {len(supplemental_pages)} · Нет данных: {unprocessed_pages} · Неоднозначно: {uncertain_pages}")
 if not is_demo and "SERP source" in current.columns:
     restored = int((current["SERP source"] == "restored_from_google_web").sum())
@@ -296,8 +296,9 @@ if filtered.empty:
 else:
     st.caption(f"Найдено позиций: {len(filtered)} · Уникальных страниц: {filtered['URL'].nunique()}")
     if selected_keyword == "Все запросы":
-        st.caption("Позиции считаются отдельно для каждого запроса.")
+        st.caption("№ — номер строки; позиция Google считается отдельно для каждого запроса. Фильтры скрывают неподходящие результаты.")
     presentation = filtered.copy()
+    presentation.insert(0, "№", range(1, len(presentation) + 1))
     presentation["Relevance"] = presentation.apply(lambda row: "Нет анализа" if row["Status"] not in ("complete", "supplemental") else relevance_labels.get(row["Relevance"], "Нужна проверка"), axis=1)
     presentation["Brands"] = presentation.apply(lambda row: row["Brands"] or ("Не найдены при анализе" if row["Status"] in ("complete", "supplemental") else "Не удалось определить"), axis=1)
     presentation["Public contact candidate"] = presentation.apply(lambda row: row["Public contact candidate"] or row["Contact"], axis=1)
@@ -305,13 +306,13 @@ else:
     presentation = presentation.rename(columns=column_labels)
     st.caption("🟢 Возможно подходит · 🟡 Проверить · 🟠 Не подходит · ⚪ Нет анализа")
     styled = presentation.style.map(assessment_color, subset=["Оценка"])
-    columns = ["Позиция", "Ссылка на страницу", "Оценка", "Бренды", "Возможный контакт", "Страница контактов", "Запрос", "Дата"]
+    columns = ["№", "Позиция", "Ссылка на страницу", "Оценка", "Бренды", "Возможный контакт", "Страница контактов", "Запрос", "Дата"]
     if selected_keyword == "Все запросы":
         columns.remove("Запрос")
-        columns.insert(0, "Запрос")
+        columns.insert(1, "Запрос")
     st.dataframe(styled, hide_index=True, width="stretch", height=420,
                  column_order=columns,
-                 column_config={"Позиция": st.column_config.NumberColumn("№", width="small"), "Ссылка на страницу": st.column_config.LinkColumn("Страница", display_text=r"https?://([^/]+).*", width="medium"), "Оценка": st.column_config.TextColumn("Оценка", width="medium"), "Бренды": st.column_config.TextColumn("Бренды", width="medium"), "Контакт на странице": st.column_config.TextColumn("Контакт на странице", width="medium"), "Возможный контакт": st.column_config.TextColumn("Возможный контакт", width="medium"), "Страница контактов": st.column_config.LinkColumn("Страница контактов", display_text="Открыть контакты ↗"), "Источник контакта": st.column_config.LinkColumn("Источник контакта", display_text="Открыть источник ↗")})
+                 column_config={"№": st.column_config.NumberColumn("№", width="small"), "Позиция": st.column_config.NumberColumn("Место в Google", width="small"), "Ссылка на страницу": st.column_config.LinkColumn("Страница", display_text=r"https?://([^/]+).*", width="medium"), "Оценка": st.column_config.TextColumn("Оценка", width="medium"), "Бренды": st.column_config.TextColumn("Бренды", width="medium"), "Контакт на странице": st.column_config.TextColumn("Контакт на странице", width="medium"), "Возможный контакт": st.column_config.TextColumn("Возможный контакт", width="medium"), "Страница контактов": st.column_config.LinkColumn("Страница контактов", display_text="Открыть контакты ↗"), "Источник контакта": st.column_config.LinkColumn("Источник контакта", display_text="Открыть источник ↗")})
     with st.expander("Подробнее о странице и источниках"):
         detail_options = filtered.drop_duplicates(subset=["URL"])
         selected_url = st.selectbox("Выберите страницу", detail_options["URL"].tolist(), key="page_detail")

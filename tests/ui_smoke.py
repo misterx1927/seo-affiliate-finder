@@ -30,5 +30,5 @@ next(item for item in app.radio if item.label == "Источник данных"
 assert not app.exception, [item.value for item in app.exception]
 assert not any("Обновить демо" in button.label for button in app.button)
 assert len(app.progress) == 1
-assert any("Google Web" in item.value for item in app.warning)
+assert any("Google Web" in item.value for item in app.caption)
 print("UI smoke test passed: Russian demo, filters and live results.")

@@ -20,7 +20,7 @@ from src.run_lock import RunLock
 def load_targets(conn, run_id, limit):
     rows = conn.execute("""SELECT DISTINCT p.url, c.content, c.charset FROM observations o
         JOIN pages p ON p.url=o.url JOIN page_cache c ON c.url=p.url
-        WHERE o.run_id=? AND p.status='complete' AND p.relevance='yes'
+        WHERE o.run_id=? AND (p.relevance IN ('yes', 'needs_review') OR p.status='needs_review')
           AND (p.contact IS NULL OR trim(p.contact)='') ORDER BY p.url LIMIT ?""", (run_id, limit)).fetchall()
     targets = {}
     for row in rows:

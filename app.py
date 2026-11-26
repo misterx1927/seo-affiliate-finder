@@ -295,7 +295,7 @@ else:
     presentation["Запросов в топ-10"] = presentation["Domain"].fillna("").astype(str).str.lower().str.replace(r"^www\.", "", regex=True).map(keyword_coverage).fillna(0).astype(int)
     presentation["Relevance"] = presentation.apply(lambda row: "Нет анализа" if row["Status"] not in ("complete", "supplemental") else relevance_labels.get(row["Relevance"], "Нужна проверка"), axis=1)
     presentation["Brands"] = presentation.apply(lambda row: row["Brands"] or ("Не найдены при анализе" if row["Status"] in ("complete", "supplemental") else "Не удалось определить"), axis=1)
-    presentation["Public contact candidate"] = presentation.apply(lambda row: row["Public contact candidate"] or row["Contact"], axis=1)
+    presentation["Public contact candidate"] = presentation.apply(lambda row: row["Public contact candidate"] or row["Contact"] or ("См. страницу контактов" if row["Contact page"] else "Не найден"), axis=1)
     presentation["Status"] = presentation["Status"].map({"complete": "AI-анализ", "supplemental": "Дополнительная проверка, 26.11.2026", "pending": "Ожидает", "needs_review": "Нет анализа"}).fillna("Нет анализа")
     presentation = presentation.rename(columns=column_labels)
     st.caption("🟢 Возможно подходит · 🟡 Проверить · 🟠 Не подходит · ⚪ Нет анализа")

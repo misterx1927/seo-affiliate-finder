@@ -14,8 +14,8 @@ from src.serp import build_task
 ENDPOINT = "https://api.dataforseo.com/v3/serp/google/organic/live/advanced"
 
 
-def diagnostic_task(*, ungroup=False):
-    task = build_task(KEYWORDS[0], 20)
+def diagnostic_task(*, ungroup=False, keyword=KEYWORDS[0]):
+    task = build_task(keyword, 20)
     # The provider charges one extra SERP page for this opt-in verification.
     task["resolve_poisoned_results"] = True
     if ungroup:
@@ -62,14 +62,14 @@ def summarize(payload):
             "items_count": result.get("items_count"), "counts": counts, "organic": organic}
 
 
-def run_one(login, password, *, ungroup=False, transport=post_json):
+def run_one(login, password, *, ungroup=False, keyword=KEYWORDS[0], transport=post_json):
     """Send exactly one paid request; errors are surfaced, not retried."""
     if not login or not password:
         raise ValueError("DataForSEO credentials are required")
     allowance = RequestAllowance(max_serp=1, max_llm=0, approved=True)
     allowance.take("serp")
     token = base64.b64encode(f"{login}:{password}".encode()).decode()
-    payload = transport(ENDPOINT, [diagnostic_task(ungroup=ungroup)],
+    payload = transport(ENDPOINT, [diagnostic_task(ungroup=ungroup, keyword=keyword)],
                         {"Authorization": f"Basic {token}"}, timeout=300)
     return summarize(payload)
 
@@ -78,8 +78,9 @@ def main():
     parser = argparse.ArgumentParser(description="One-query diagnostic; offline unless explicitly authorized")
     parser.add_argument("--allow-paid", action="store_true", help="Authorize one paid DataForSEO request")
     parser.add_argument("--ungroup", action="store_true", help="Also request related results as separate organic items")
+    parser.add_argument("--keyword", choices=KEYWORDS, default=KEYWORDS[0], help="Choose one project keyword to diagnose")
     args = parser.parse_args()
-    task = diagnostic_task(ungroup=args.ungroup)
+    task = diagnostic_task(ungroup=args.ungroup, keyword=args.keyword)
     print("One Google Canada mobile query, depth 20, poisoned-results verification enabled.")
     print("Estimated up to $0.006 at the published Live price; this is not a provider-enforced spending limit.")
     print("Request configuration:", json.dumps(task, ensure_ascii=False))
@@ -90,7 +91,7 @@ def main():
     login, password = os.getenv("DATAFORSEO_LOGIN"), os.getenv("DATAFORSEO_PASSWORD")
     if not login or not password:
         parser.error("DataForSEO credentials are missing; no request sent")
-    report = run_one(login, password, ungroup=args.ungroup)
+    report = run_one(login, password, ungroup=args.ungroup, keyword=args.keyword)
     report["request"] = task
     folder = Path("exports/serp-diagnostics")
     folder.mkdir(parents=True, exist_ok=True)

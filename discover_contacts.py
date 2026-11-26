@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from src.contact_discovery import choose_contact, contact_pages, public_email_candidates
+from src.contact_discovery import choose_contact, cloudflare_email_candidates, contact_pages, public_email_candidates
 from src.database import connect
 from src.exporter import safe_cell
 from src.fetcher import fetch_page
@@ -35,7 +35,8 @@ def inspect_page(url):
         # A contact page can legitimately contain only a heading and email.
         # Keep challenge detection, but do not impose the article length limit.
         text = extract_text(content, charset, min_text_chars=1)
-        return choose_contact(public_email_candidates(text), url), None
+        candidates = public_email_candidates(text) + cloudflare_email_candidates(content, charset)
+        return choose_contact(list(dict.fromkeys(candidates)), url), None
     except Exception as exc:
         return None, f'{type(exc).__name__}: {exc}'
 

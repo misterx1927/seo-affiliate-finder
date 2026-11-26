@@ -43,3 +43,7 @@ A separate browser request to `https://www.google.ca/search?q=online+casino+cana
 
 All ten domains overlapped with the recorded result; the first three ranks matched. This was a desktop browser, not an actual mobile device, with no verified Canadian IP location. `gl=CA` is a country hint, not proof of Canadian location or mobile results. The comparison covers one query at a different time, so it is not a 10-query accuracy test and does not establish that restored positions were correct. No paid request was made.
 
+
+## Follow-up: interac casino, 26 November 2026
+
+Run 20 returned two organic results for this query without recovery. A separate DataForSEO diagnostic using `group_organic_results=false` and `resolve_poisoned_results=true` returned 20 organic items; the first ten carried the provider flag `from_web`. The provider reported $0.006 for this diagnostic. This demonstrates increased completeness for this single request, not independently verified Canadian mobile positions. The recovered results were not substituted into the saved snapshot.

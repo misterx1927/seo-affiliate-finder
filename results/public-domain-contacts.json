@@ -1,0 +1,9 @@
+{
+  "casino.guru": {"email": "community@casino.guru", "source": "https://casino.guru/forum/casinos/casino-review-request", "contact_page": "https://casino.guru/contact-us"},
+  "casino.org": {"email": "casino@casino.org", "source": "https://www.casino.org/get-listed/", "contact_page": "https://www.casino.org/get-listed/"},
+  "gambling.com": {"email": "newsdesk@gambling.com", "source": "https://www.gambling.com/about-us", "contact_page": "https://www.gambling.com/about-us"},
+  "chipy.com": {"email": "marketing@chipy.com", "source": "https://chipy.com/contact-us", "contact_page": "https://chipy.com/contact-us"},
+  "casinocanada.com": {"email": "partners@casinocanada.com", "source": "https://casinocanada.com/about/", "contact_page": "https://casinocanada.com/about/"},
+  "slotozilla.com": {"email": "", "source": "https://www.slotozilla.com/ca/partnership", "contact_page": "https://www.slotozilla.com/ca/partnership"},
+  "betiton.com": {"email": "", "source": "https://www.betiton.com/en-ie/contact-us/", "contact_page": "https://www.betiton.com/en-ie/contact-us/"}
+}

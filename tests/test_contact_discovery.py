@@ -1,7 +1,7 @@
 import unittest
 import sqlite3
 from unittest.mock import patch
-from src.contact_discovery import choose_contact, contact_pages, public_email_candidates
+from src.contact_discovery import choose_contact, cloudflare_email_candidates, contact_pages, public_email_candidates
 from discover_contacts import load_targets, inspect_page
 
 
@@ -46,6 +46,19 @@ class ContactDiscoveryTests(unittest.TestCase):
         text = 'Write to press [at] publisher [dot] com or sales(at)publisher.com.'
         self.assertEqual(public_email_candidates(text), ['press@publisher.com', 'sales@publisher.com'])
         self.assertEqual(public_email_candidates('Contact us on publisher.com'), [])
+
+    @patch('discover_contacts.fetch_page')
+    def test_cloudflare_public_address_is_decoded_and_filtered(self, fetch):
+        address = 'partners@publisher.com'
+        key = 0x35
+        encoded = bytes([key] + [key ^ b for b in address.encode('ascii')]).hex()
+        page = (f'<h1>Contact</h1><a href="/cdn-cgi/l/email-protection#{encoded}">'
+                f'<span data-cfemail="{encoded}">[email protected]</span></a>'
+                '<span data-cfemail="nope">broken</span>').encode()
+        self.assertEqual(cloudflare_email_candidates(page, 'utf-8'), [address])
+        fetch.return_value = page, 'utf-8'
+        self.assertEqual(inspect_page('https://publisher.com/contact'), (address, None))
+        self.assertEqual(inspect_page('https://another.com/contact'), (None, None))
 
     def test_uncertain_cached_pages_are_included_but_rejected_pages_excluded(self):
         conn = sqlite3.connect(':memory:')

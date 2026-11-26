@@ -1,10 +1,21 @@
 import unittest
 import sqlite3
+from unittest.mock import patch
 from src.contact_discovery import choose_contact, contact_pages, public_email_candidates
-from discover_contacts import load_targets
+from discover_contacts import load_targets, inspect_page
 
 
 class ContactDiscoveryTests(unittest.TestCase):
+    @patch('discover_contacts.fetch_page')
+    def test_short_contact_page_can_provide_email_but_challenge_cannot(self, fetch):
+        fetch.return_value = (b'<h1>Contact</h1><p>partner@publisher.example</p>', 'utf-8')
+        self.assertEqual(inspect_page('https://publisher.example/contact'),
+                         ('partner@publisher.example', None))
+        fetch.return_value = (b'<title>Just a moment...</title><p>Verify you are human</p>', 'utf-8')
+        email, error = inspect_page('https://publisher.example/contact')
+        self.assertIsNone(email)
+        self.assertIn('challenge', error)
+
     def test_follows_only_same_origin_and_limited_links(self):
         html = b'<a href="/contact-us">Contact</a><a href="https://evil.example/contact">External</a><a href="/advertising">Advertising</a><a href="http://site.example/contact">Downgrade</a>'
         self.assertEqual(contact_pages(html, 'utf-8', 'https://site.example/reviews'), ['https://site.example/contact-us', 'https://site.example/advertising'])

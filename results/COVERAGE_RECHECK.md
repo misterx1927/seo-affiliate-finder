@@ -27,6 +27,8 @@
 
 Дополнительные контакты сайтов: advertising@coversmedia.com ([Covers](https://www.covers.com/contact), продажи и маркетинг, сотрудничество в спортивных ставках); shannon@rotowire.com ([RotoWire](https://assets.rotowire.com/documents/advertise/content-syndication.pdf), директор по продажам, синдикация спортивного контента); contact@nodepositbonus.cc ([NoDepositBonus](https://www.nodepositbonus.cc/privacy-policy/), общий адрес, назначение для партнёрств не подтверждено). Это контакты сайтов, а не обязательно самих страниц выдачи. Условия и актуальность необходимо проверять.
 
+Дополнительная проверка публичных источников: news@casinos.com указан на [странице набора авторов Casinos.com](https://www.casinos.com/news/casino-news-writers-wanted) для обращения в редакцию по поводу работы автора, назначение для рекламных предложений не подтверждено. У [Business Examiner](https://businessexaminer.ca/advertise/) есть форма связи по вопросам рекламы, у [RG.org](https://rg.org/contacts) — страница контактов и форма обратной связи. Принятие рекламы казино этими изданиями не подтверждено. Информация проверена по публичному поисковому индексу, а не по состоянию сайтов на дату исходного прогона.
+
 ## NorthStar Bets
 
 - Исходный URL: https://www.northstarbets.ca/casino

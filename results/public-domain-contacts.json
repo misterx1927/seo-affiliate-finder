@@ -65,9 +65,19 @@
     "contact_page": "https://casinoalpha.ca/about/advertise-with-us/"
   },
   "casinos.com": {
-    "email": "",
-    "source": "https://www.casinos.com/about-us",
+    "email": "news@casinos.com",
+    "source": "https://www.casinos.com/news/casino-news-writers-wanted",
     "contact_page": "https://www.casinos.com/about-us"
+  },
+  "businessexaminer.ca": {
+    "email": "",
+    "source": "https://businessexaminer.ca/advertise/",
+    "contact_page": "https://businessexaminer.ca/advertise/"
+  },
+  "rg.org": {
+    "email": "",
+    "source": "https://rg.org/contacts",
+    "contact_page": "https://rg.org/contacts"
   },
   "cflnewshub.com": {
     "email": "info@cflnewshub.com",

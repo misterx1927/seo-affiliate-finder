@@ -40,6 +40,16 @@ assert "ad.ops@livescore.com" in contacts
 assert "info@cflnewshub.com" in contacts
 assert "См. страницу контактов" in contacts
 assert not any(value == "" for value in contacts)
+saved_table = app.dataframe[0].value
+for domain, contact_page in {
+    "pokertube.com": "https://www.pokertube.com/contact",
+    "squawka.com": "https://www.squawka.com/ca/help-and-faqs/",
+    "sigma.world": "https://sigma.world/contact/",
+}.items():
+    matching = saved_table[saved_table["Ссылка на страницу"].str.contains(domain, regex=False)]
+    assert len(matching) > 0, f"{domain}: missing from saved results"
+    assert set(matching["Страница контактов"]) == {contact_page}, domain
+    assert set(matching["Возможный контакт"]) == {"См. страницу контактов"}, domain
 next(item for item in app.multiselect if item.label == "Показать").set_value([]).run(timeout=30)
 assert app.dataframe and len(app.dataframe[0].value) > 0
 app.selectbox[0].select("Все запросы").run(timeout=30)

@@ -1,10 +1,12 @@
 import io
 import json
+import os
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 from urllib.parse import parse_qs, urlsplit
 
-from compare_serpapi import compare, serpapi_request
+from compare_serpapi import compare, main, serpapi_request
 
 
 class SerpApiComparisonTests(unittest.TestCase):
@@ -44,6 +46,23 @@ class SerpApiComparisonTests(unittest.TestCase):
         with patch('compare_serpapi.urllib.request.build_opener', return_value=Opener()):
             with self.assertRaisesRegex(RuntimeError, 'no DataForSEO request'):
                 serpapi_request('interac casino', 'test-key')
+
+    def test_incomplete_response_is_saved_without_querying_dataforseo(self):
+        rows = [{'rank': 1, 'url': 'https://example.com/'}]
+        with patch.dict(os.environ, {'SERPAPI_API_KEY': 'secret', 'DATAFORSEO_LOGIN': 'x',
+                                    'DATAFORSEO_PASSWORD': 'y'}), \
+             patch('sys.argv', ['compare_serpapi.py', '--keyword', 'interac casino', '--allow-paid']), \
+             patch('compare_serpapi.load_env'), \
+             patch('compare_serpapi.serpapi_request', return_value=rows), \
+             patch('compare_serpapi.save_report', return_value=Path('report.json')) as save, \
+             patch('compare_serpapi.run_one') as dataforseo:
+            with self.assertRaisesRegex(RuntimeError, 'no DataForSEO request'):
+                main()
+            dataforseo.assert_not_called()
+            report = save.call_args.args[0]
+            self.assertEqual(report['serpapi'], rows)
+            self.assertIsNone(report['dataforseo'])
+            self.assertNotIn('secret', json.dumps(report))
 
 
 if __name__ == '__main__':

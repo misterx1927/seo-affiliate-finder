@@ -15,7 +15,7 @@ from src.database import connect
 from src.exporter import safe_cell, serp_provenance
 from src.pipeline import run_offline
 from src.contact_discovery import contact_pages
-from src.snapshot import load_snapshot
+from src.snapshot import load_snapshot, snapshot_review
 
 st.set_page_config(page_title="Affiliate Finder | Search intelligence", page_icon="✳", layout="wide", initial_sidebar_state="collapsed")
 st.markdown("""<style>
@@ -193,7 +193,7 @@ with connect("data/demo.db" if is_demo else "data/live.db") as conn:
     displayed = []
     for row in rows:
         item = dict(row)
-        review = supplemental.get(item['URL']) if item['Status'] != 'complete' else None
+        review = snapshot_review(supplemental, item['URL'], item['Date'], item['Status'])
         if review:
             item['Relevance'] = review['relevance']
             item['Brands'] = json.dumps(review.get('brands', []), ensure_ascii=False)

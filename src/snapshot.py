@@ -4,6 +4,16 @@ import json
 from pathlib import Path
 
 
+def snapshot_review(reviews: dict, url: str, day: str, status: str):
+    """Apply the dated, manual review only to its original saved run.
+
+    Later collections must not inherit old page content as a fresh assessment.
+    """
+    if day != "2026-11-25" or status == "complete":
+        return None
+    return reviews.get(url)
+
+
 def load_snapshot(path: str | Path) -> list[dict]:
     with Path(path).open(encoding="utf-8-sig", newline="") as source:
         raw = list(csv.DictReader(source))

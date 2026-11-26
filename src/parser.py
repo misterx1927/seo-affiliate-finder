@@ -46,6 +46,7 @@ def _check_interstitial(text: str, title: str = "") -> None:
 
 class _TextExtractor(HTMLParser):
     HIDDEN = {"script", "style", "noscript", "svg", "template", "iframe"}
+    VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
     BLOCK = {"p", "div", "li", "h1", "h2", "h3", "h4", "section", "article", "br", "footer", "header"}
     def __init__(self):
         super().__init__(convert_charrefs=True)
@@ -54,11 +55,21 @@ class _TextExtractor(HTMLParser):
         self.in_title = False
         self.title_parts = []
     def handle_starttag(self, tag, attrs):
+        attributes = {key.lower(): value for key, value in attrs}
+        style = attributes.get("style") or ""
+        explicitly_hidden = ("hidden" in attributes
+                             or re.search(r"(?:^|;)\s*(?:display\s*:\s*none|visibility\s*:\s*hidden)\s*(?:!important\s*)?(?:;|$)", style, re.I))
+        if self.hidden:
+            if tag not in self.VOID:
+                self.hidden.append(tag)
+            return
+        if tag in self.HIDDEN or explicitly_hidden:
+            if tag not in self.VOID:
+                self.hidden.append(tag)
+            return
         if tag == "title" and not self.hidden:
             self.in_title = True
-        if tag in self.HIDDEN:
-            self.hidden.append(tag)
-        elif not self.hidden:
+        if not self.hidden:
             if tag in self.BLOCK:
                 self.parts.append("\n")
             if tag == "a":
@@ -66,11 +77,14 @@ class _TextExtractor(HTMLParser):
                     if key == "href" and value and value.lower().startswith("mailto:"):
                         self.parts.append(" " + value[7:].split("?", 1)[0] + " ")
     def handle_endtag(self, tag):
+        if self.hidden:
+            if tag in self.hidden:
+                index = len(self.hidden) - 1 - self.hidden[::-1].index(tag)
+                del self.hidden[index:]
+            return
         if tag == "title":
             self.in_title = False
-        if self.hidden and tag == self.hidden[-1]:
-            self.hidden.pop()
-        elif not self.hidden and tag in self.BLOCK:
+        if tag in self.BLOCK:
             self.parts.append("\n")
     def handle_data(self, data):
         if not self.hidden:

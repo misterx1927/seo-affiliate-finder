@@ -8,6 +8,7 @@ from urllib.parse import urljoin, urlsplit, urlunsplit
 
 _EMAIL = re.compile(r"(?<![\w.+-])([A-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Z0-9.-]+\.[A-Z]{2,})(?![\w@-]|\.[A-Z0-9])", re.I)
 _TERMS = re.compile(r"contact|partner|advertis|media|business|work-with-us", re.I)
+_LINK_LABEL = re.compile(r"\b(?:contact(?:\s+us)?|get\s+in\s+touch|partnerships?|advertis(?:e|ing)|media\s+inquiries|work\s+with\s+us)\b", re.I)
 _OUTREACH = re.compile(r"advertis|partner|business|media|editor|contact", re.I)
 
 
@@ -15,9 +16,19 @@ class _Links(HTMLParser):
     def __init__(self):
         super().__init__(convert_charrefs=True)
         self.urls = []
+        self.link = None
+        self.label = []
     def handle_starttag(self, tag, attrs):
         if tag == 'a':
-            self.urls.extend(value for key, value in attrs if key == 'href' and value)
+            self.link = next((value for key, value in attrs if key == 'href' and value), None)
+            self.label = []
+    def handle_data(self, text):
+        if self.link is not None:
+            self.label.append(text)
+    def handle_endtag(self, tag):
+        if tag == 'a' and self.link is not None:
+            self.urls.append((self.link, ' '.join(self.label)))
+            self.link, self.label = None, []
 
 
 def contact_pages(content: bytes, charset: str, page_url: str, limit: int = 2) -> list[str]:
@@ -39,14 +50,14 @@ def contact_pages(content: bytes, charset: str, page_url: str, limit: int = 2) -
     # Provider markdown may be stored inside a safe, escaped HTML container.
     from html import unescape
     markdown = unescape(html)
-    links = parser.urls + re.findall(r'\[[^\]\n]{1,150}\]\((https?://[^\s)]+|/[^\s)]+)\)', markdown, re.I)
+    links = parser.urls + [(url, label) for label, url in re.findall(r'\[([^\]\n]{1,150})\]\((https?://[^\s)]+|/[^\s)]+)\)', markdown, re.I)]
     candidates = []
-    for link in links:
+    for link, label in links:
         try:
             full = urlsplit(urljoin(page_url, link))
             if full.scheme != page.scheme or full.hostname != page.hostname or full.port != page.port or full.username or full.password:
                 continue
-            if not _TERMS.search(full.path):
+            if not _TERMS.search(full.path) and not _LINK_LABEL.search(label):
                 continue
             url = urlunsplit((full.scheme, full.netloc, full.path, full.query, ''))
             if url != page_url and url not in candidates:

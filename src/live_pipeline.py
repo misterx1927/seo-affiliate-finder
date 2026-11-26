@@ -111,7 +111,7 @@ def run_live(conn, day, keywords, serp, analyzer, fetch, lock_path, max_pages, r
                         content, charset = cached["content"], cached["charset"]
                     else:
                         content, charset = fetch(url)
-                    text = extract_text(content, charset)
+                    text = extract_text(content, charset, base_url=url)
                     if not cached:
                         with conn:
                             conn.execute("DELETE FROM page_cache_provenance WHERE url=?", (url,))

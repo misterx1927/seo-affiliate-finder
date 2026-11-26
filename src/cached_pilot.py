@@ -44,7 +44,7 @@ def run_cached_pilot(conn, search_run, limit, analyzer_factory, lock_path, *, ma
                 with conn:
                     conn.execute("INSERT INTO run_pages(run_id,url,status) VALUES (?,?,'started')", (run_id,url))
                 try:
-                    text = extract_text(row['content'], row['charset'])
+                    text = extract_text(row['content'], row['charset'], base_url=url)
                     result, usage = analyzer.analyze(text)
                     if not isinstance(usage, dict): usage = {}
                     inp, out = usage.get('prompt_tokens'), usage.get('completion_tokens')

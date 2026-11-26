@@ -1,6 +1,7 @@
 """Extract bounded, readable text from HTML without executing page scripts."""
 from html.parser import HTMLParser
 import re
+from urllib.parse import urljoin, urlsplit, urldefrag
 
 # Some ordinary pages include several megabytes of inline scripts and metadata.
 # Keep a hard bound on the download/parser while accepting those pages.
@@ -48,12 +49,14 @@ class _TextExtractor(HTMLParser):
     HIDDEN = {"script", "style", "noscript", "svg", "template", "iframe"}
     VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"}
     BLOCK = {"p", "div", "li", "h1", "h2", "h3", "h4", "section", "article", "br", "footer", "header"}
-    def __init__(self):
+    def __init__(self, base_url=None):
         super().__init__(convert_charrefs=True)
         self.hidden = []
         self.parts = []
         self.in_title = False
         self.title_parts = []
+        self.base_url = base_url
+        self.anchor = None
     def handle_starttag(self, tag, attrs):
         attributes = {key.lower(): value for key, value in attrs}
         style = attributes.get("style") or ""
@@ -73,6 +76,7 @@ class _TextExtractor(HTMLParser):
             if tag in self.BLOCK:
                 self.parts.append("\n")
             if tag == "a":
+                self.anchor = {"href": attributes.get("href") or "", "label": []}
                 for key, value in attrs:
                     if key == "href" and value and value.lower().startswith("mailto:"):
                         self.parts.append(" " + value[7:].split("?", 1)[0] + " ")
@@ -82,6 +86,9 @@ class _TextExtractor(HTMLParser):
                 index = len(self.hidden) - 1 - self.hidden[::-1].index(tag)
                 del self.hidden[index:]
             return
+        if tag == "a" and self.anchor is not None:
+            self._append_contact_link()
+            self.anchor = None
         if tag == "title":
             self.in_title = False
         if tag in self.BLOCK:
@@ -89,17 +96,42 @@ class _TextExtractor(HTMLParser):
     def handle_data(self, data):
         if not self.hidden:
             self.parts.append(data)
+            if self.anchor is not None:
+                self.anchor["label"].append(data)
             if self.in_title:
                 self.title_parts.append(data)
 
-def extract_text(content: bytes, charset: str = "utf-8") -> str:
+    def _append_contact_link(self):
+        """Preserve visible publisher contact links, not arbitrary outbound links."""
+        if not self.base_url:
+            return
+        href = self.anchor["href"].strip()
+        label = " ".join(self.anchor["label"]).casefold()
+        if (not href or href.startswith(("#", "?")) or
+                not re.search(r"\b(contact|advertis(?:e|ing)|partners?(?:hips?)?)\b", label)):
+            return
+        try:
+            target = urldefrag(urljoin(self.base_url, href)).url
+            origin, destination = urlsplit(self.base_url), urlsplit(target)
+            if (origin.scheme not in ("http", "https") or destination.scheme not in ("http", "https")
+                    or not origin.hostname or not destination.hostname or destination.username or destination.password
+                    or destination.port not in (None, 80, 443)
+                    or origin.hostname.lower().removeprefix("www.") != destination.hostname.lower().removeprefix("www.")):
+                return
+            if not destination.path or destination.path == "/":
+                return
+        except ValueError:
+            return
+        self.parts.append(" " + target + " ")
+
+def extract_text(content: bytes, charset: str = "utf-8", *, base_url: str | None = None) -> str:
     if len(content) > MAX_HTML_BYTES:
         raise PageError("Page exceeds size limit")
     try:
         html = content.decode(charset, errors="replace")
     except LookupError as exc:
         raise PageError("Unsupported page encoding") from exc
-    parser = _TextExtractor()
+    parser = _TextExtractor(base_url)
     try:
         parser.feed(html)
         parser.close()

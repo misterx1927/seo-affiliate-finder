@@ -106,7 +106,7 @@ class OpenAIAnalyzer:
         # Bump the policy version when changing the prompt, model contract or input selection.
         # Cached results made before whole-name validation may contain partial
         # matches, so they must not silently bypass the new check.
-        self.cache_version = f"openai-page-analysis-v8:{model}"
+        self.cache_version = f"openai-page-analysis-v9:{model}"
     def analyze(self, page_text: str):
         from .analyzer import validate_analysis
         if not page_text.strip(): raise ValueError("Page text is empty")

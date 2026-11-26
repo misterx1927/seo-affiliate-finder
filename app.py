@@ -43,7 +43,7 @@ p {line-height:1.55;}
 .context-row {display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px;}
 .context-item {font-size:11px;color:#b2c0b3;background:#18221c;border:1px solid #2d3c32;border-radius:8px;padding:7px 10px;}
 .demo-note {font-size:11px;line-height:1.5;color:#9aa99d;margin-top:8px;}
-.hero-art {position:relative;overflow:hidden;border:1px solid #496249;border-radius:20px;background:linear-gradient(135deg,#304d35,#15261b 68%);min-height:210px;padding:25px 26px;box-shadow:0 20px 60px #0003;}
+.hero-art {position:relative;overflow:hidden;border:1px solid #526b50;border-radius:20px;background:linear-gradient(135deg,#304d35,#15261b 68%);min-height:188px;padding:22px 26px;box-shadow:0 20px 60px #0003;}
 .hero-art:after {content:'';position:absolute;width:245px;height:245px;border:1px solid #a0d57c33;border-radius:50%;right:-45px;top:-21px;box-shadow:0 0 0 28px #a0d57c0b,0 0 0 57px #a0d57c0a,0 0 0 87px #a0d57c08;}
 .art-kicker {font-size:10px;text-transform:uppercase;letter-spacing:.15em;color:#a6bbaa;font-weight:700;position:relative;z-index:1;}
 .art-value {font:800 58px/1 'Manrope',sans-serif;letter-spacing:-.07em;color:#e8f7d6;margin:20px 0 6px;position:relative;z-index:1;}
@@ -73,8 +73,13 @@ p {line-height:1.55;}
 .quality-note {border:1px solid #40533c;border-left:3px solid #c5ed81;border-radius:12px;background:#19271c;padding:14px 17px;margin:18px 0 8px;color:#c7d7c7;font-size:12px;line-height:1.55;}
 .quality-note strong {color:#eef7e8;}
 [data-testid="stExpander"] {border:1px solid #304436;border-radius:14px;background:#111a14;}
+[data-testid="stExpander"] summary {padding:1rem 1.1rem;}
+[data-testid="stRadio"] [role="radiogroup"] {gap:0.5rem 1.25rem;}
+[data-testid="stDataFrame"] {box-shadow:0 12px 35px #0003;}
+.detail-heading {font:700 20px 'Manrope',sans-serif;color:#f2f8ef;letter-spacing:-.035em;margin:2px 0 5px;word-break:break-word;}
+.detail-sub {color:#91a595;font-size:12px;line-height:1.5;margin-bottom:14px;}
 .footer {border-top:1px solid #25332a;margin-top:38px;padding-top:17px;display:flex;justify-content:space-between;gap:12px;color:#6e8073;font-size:11px;}
-@media (max-width: 760px) {.block-container {padding:1.3rem 1rem 3rem;} .brand-sub,.top-meta .pill:first-child {display:none;} .hero-art {min-height:155px;} .section-side {display:none;} .hero-title {font-size:2.45rem;} .footer {display:block;} .signal-grid {grid-template-columns:1fr;gap:8px;} .signal-card {min-height:auto;} }
+@media (max-width: 760px) {.block-container {padding:1.1rem 1rem 3rem;} .brand-sub,.top-meta .pill:first-child {display:none;} .topbar {margin-bottom:22px;} .section-side {display:none;} .hero-title {font-size:2.05rem;line-height:1.12;} .hero-copy {font-size:13px;margin-bottom:8px;} .section-top {margin:22px 0 12px;} .footer {display:block;} [data-testid="stHorizontalBlock"]:has([data-testid="stMetric"]) {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;} [data-testid="stHorizontalBlock"]:has([data-testid="stMetric"]) [data-testid="stColumn"] {width:auto !important;min-width:0 !important;} [data-testid="stMetric"] {min-height:88px;padding:14px;} [data-testid="stMetricValue"], [data-testid="stMetricValue"] div {font-size:26px;} }
 </style>""", unsafe_allow_html=True)
 
 def live_results_exist():
@@ -186,14 +191,14 @@ with connect("data/demo.db" if is_demo else "data/live.db") as conn:
         if review:
             item['Relevance'] = review['relevance']
             item['Brands'] = json.dumps(review.get('brands', []), ensure_ascii=False)
-            item['Contact'] = review.get('contact', '')
+            item['Contact'] = ''
             item['Status'] = 'supplemental'
             item['Error'] = ''
         item['Review note'] = review.get('note', '') if review else ''
         item['SERP source'] = 'fictional_demo' if is_demo else serp_provenance(item['Position'], item.pop('WebRanks'), item.pop('VerificationRequested'))
-        item['Page source'] = 'fictional_demo' if is_demo else (item.pop('PageSource') or 'direct_or_unknown')
-        item['Public contact candidate'] = item.pop('ContactCandidate', '')
-        item['Contact candidate source'] = item.pop('ContactCandidateSource', '')
+        item['Page source'] = 'fictional_demo' if is_demo else ('Индексированная версия (дополнительная проверка)' if review else (item.pop('PageSource') or 'direct_or_unknown'))
+        item['Public contact candidate'] = (review.get('contact', '') if review else '') or item.pop('ContactCandidate', '')
+        item['Contact candidate source'] = (review.get('contact_page', '') if review else '') or item.pop('ContactCandidateSource', '')
         item['Analysis version'] = item.pop('AnalysisVersion', '')
         item['Contact page'] = review.get('contact_page', '') if review and review.get('contact_page') else contact_links.get(item['URL'], '')
         item.pop('WebRanks', None)
@@ -215,7 +220,7 @@ with connect("data/demo.db" if is_demo else "data/live.db") as conn:
             current["Relevance"] = current["Relevance"].fillna("needs_review")
             latest = current["Date"].max()
 
-    st.markdown('''<div class="eyebrow">✳ &nbsp; Google · Канада · мобильная выдача</div><div class="hero-title">Найдите площадки<br><em>для размещения.</em></div><p class="hero-copy">Позиции по поисковым запросам, оценка площадок, бренды и контакты — в одном месте.</p>''', unsafe_allow_html=True)
+    st.markdown('''<div class="eyebrow">✳ &nbsp; GOOGLE · КАНАДА · МОБИЛЬНЫЕ УСТРОЙСТВА</div><div class="hero-title">Поиск&nbsp;<em>площадок</em></div><p class="hero-copy">Позиции, бренды и контакты для размещения.</p>''', unsafe_allow_html=True)
     if is_demo:
         st.info("Демо: ниже вымышленные примеры. Выберите «Реальные результаты» в боковом меню, чтобы увидеть сохранённый поиск.")
         if st.button("Обновить демо", type="primary"):
@@ -226,7 +231,6 @@ with connect("data/demo.db" if is_demo else "data/live.db") as conn:
             else:
                 st.warning("Некоторые страницы демо требуют проверки.")
 
-st.markdown('''<div class="section-top"><div><div class="section-label">Обзор результатов</div></div></div>''', unsafe_allow_html=True)
 a, b, c, d = st.columns(4)
 a.metric("ЗАПРОСЫ", str(current["Keyword"].nunique()))
 b.metric("ПОЗИЦИИ", str(len(current)))
@@ -240,12 +244,12 @@ unprocessed_pages = len(unique_pages) - len(complete_pages) - len(supplemental_p
 uncertain_pages = int((unique_pages[unique_pages["Status"].isin(["complete", "supplemental"])]["Relevance"] == "needs_review").sum())
 coverage = len(complete_pages) / len(unique_pages) if len(unique_pages) else 0.0
 st.progress(coverage, text=f"Проанализировано страниц: {len(complete_pages)} из {len(unique_pages)}")
-st.caption(f"Дополнительная проверка по индексированным страницам: {len(supplemental_pages)} · Нет данных: {unprocessed_pages} · Неоднозначная оценка: {uncertain_pages}. Дополнительная проверка не заменяет автоматический AI-анализ.")
+st.caption(f"Дополнительная проверка: {len(supplemental_pages)} · Нет данных: {unprocessed_pages} · Неоднозначно: {uncertain_pages}")
 if not is_demo and "SERP source" in current.columns:
     restored = int((current["SERP source"] == "restored_from_google_web").sum())
-    st.warning(f"{restored} из {len(current)} позиций провайдер восстановил через Google Web: они могут отличаться от исходной мобильной выдачи. Оценки AI и контакты требуют проверки.")
+    st.caption(f"{restored} из {len(current)} позиций восстановлены через Google Web и могут отличаться от мобильной выдачи. Дополнительная проверка не является AI-анализом; контакты требуют подтверждения.")
 
-st.markdown('''<div class="section-top"><div><div class="section-label">Результаты поиска</div><div class="section-sub">Откройте страницу, проверьте оценку и сохраните подходящие результаты.</div></div></div>''', unsafe_allow_html=True)
+st.markdown('''<div class="section-top"><div><div class="section-label">Результаты поиска</div></div></div>''', unsafe_allow_html=True)
 show_history = st.checkbox("Показать предыдущие даты", value=False)
 explorer = frame if show_history or latest is None else frame[frame["Date"] == latest]
 video_count = int(explorer["URL"].map(is_video_result).sum())
@@ -260,6 +264,9 @@ elif view == "Нужна проверка":
     explorer = explorer[(~explorer["Status"].isin(["complete", "supplemental"])) | (explorer["Relevance"] == "needs_review")]
 elif view == "Не подходят":
     explorer = explorer[(explorer["Status"].isin(["complete", "supplemental"])) & (explorer["Relevance"] == "no")]
+only_contacts = st.checkbox("Только с контактом или страницей контактов", value=False, help="Показывает адреса, найденные на странице, возможные публичные контакты и ссылки на контактные страницы. Перед обращением их нужно проверить.")
+if only_contacts:
+    explorer = explorer[(explorer["Contact"].fillna("") != "") | (explorer["Public contact candidate"].fillna("") != "") | (explorer["Contact page"].fillna("") != "")]
 filters_a, filters_b = st.columns([2, 1])
 with filters_a:
     query = st.text_input("Поиск", placeholder="Домен, запрос, бренд или контакт", label_visibility="collapsed")
@@ -282,24 +289,26 @@ if filtered.empty:
     st.info("Результатов по выбранным условиям нет. Измените фильтр или поисковый запрос.")
 else:
     st.caption(f"Найдено позиций: {len(filtered)} · Уникальных страниц: {filtered['URL'].nunique()}")
-    st.caption("Позиции считаются отдельно для каждого запроса. Ссылка на контакты найдена на сайте; её доступность и назначение для партнёрств не подтверждены.")
+    if selected_keyword == "Все запросы":
+        st.caption("Позиции считаются отдельно для каждого запроса.")
     presentation = filtered.copy()
     presentation["Relevance"] = presentation.apply(lambda row: "Нет анализа" if row["Status"] not in ("complete", "supplemental") else relevance_labels.get(row["Relevance"], "Нужна проверка"), axis=1)
     presentation["Status"] = presentation["Status"].map({"complete": "AI-анализ", "supplemental": "Дополнительная проверка, 26.11.2026", "pending": "Ожидает", "needs_review": "Нет анализа"}).fillna("Нет анализа")
     presentation = presentation.rename(columns=column_labels)
-    st.caption("🟢 Возможно подходит · 🟡 Нужна проверка · 🟠 Не подходит · ⚪ Нет анализа. Цвета обозначают категорию, не процент уверенности.")
+    st.caption("🟢 Возможно подходит · 🟡 Проверить · 🟠 Не подходит · ⚪ Нет анализа")
     styled = presentation.style.map(assessment_color, subset=["Оценка"])
-    columns = ["Позиция", "Ссылка на страницу", "Оценка", "Способ оценки", "Бренды", "Контакт на странице", "Страница контактов", "Возможный контакт", "Запрос", "Дата", "Домен", "Источник контакта"]
+    columns = ["Позиция", "Ссылка на страницу", "Оценка", "Бренды", "Контакт на странице", "Возможный контакт", "Страница контактов", "Способ оценки", "Запрос", "Дата", "Домен", "Источник контакта"]
     if selected_keyword == "Все запросы":
         columns.remove("Запрос")
         columns.insert(0, "Запрос")
     st.dataframe(styled, hide_index=True, width="stretch", height=420,
                  column_order=columns,
-                 column_config={"Ссылка на страницу": st.column_config.LinkColumn("Ссылка на страницу", display_text=r"https?://([^/]+).*"), "Страница контактов": st.column_config.LinkColumn("Страница контактов", display_text="Открыть контакты ↗"), "Источник контакта": st.column_config.LinkColumn("Источник контакта", display_text="Открыть источник ↗")})
+                 column_config={"Позиция": st.column_config.NumberColumn("№", width="small"), "Ссылка на страницу": st.column_config.LinkColumn("Страница", display_text=r"https?://([^/]+).*", width="medium"), "Оценка": st.column_config.TextColumn("Оценка", width="medium"), "Бренды": st.column_config.TextColumn("Бренды", width="medium"), "Контакт на странице": st.column_config.TextColumn("Контакт на странице", width="medium"), "Возможный контакт": st.column_config.TextColumn("Возможный контакт", width="medium"), "Страница контактов": st.column_config.LinkColumn("Страница контактов", display_text="Открыть контакты ↗"), "Источник контакта": st.column_config.LinkColumn("Источник контакта", display_text="Открыть источник ↗")})
     with st.expander("Подробнее о странице и источниках"):
         detail_options = filtered.drop_duplicates(subset=["URL"])
         selected_url = st.selectbox("Выберите страницу", detail_options["URL"].tolist(), key="page_detail")
         detail = detail_options.loc[detail_options["URL"] == selected_url].iloc[0]
+        st.markdown(f'''<div class="detail-heading">{escape(str(detail["Domain"]))}</div><div class="detail-sub">Позиция {escape(str(detail["Position"]))} · {escape(str(detail["Keyword"]))} · {escape(str(detail["Date"]))}</div>''', unsafe_allow_html=True)
         st.link_button("Открыть страницу ↗", str(detail["URL"]))
         status = "Нет принятого анализа" if detail["Status"] not in ("complete", "supplemental") else relevance_labels.get(detail["Relevance"], "Нужна проверка")
         st.write("**Оценка:** " + status)
@@ -307,8 +316,9 @@ else:
             st.info(friendly_error(detail["Error"]))
         else:
             st.write("**Бренды:** " + (str(detail["Brands"]) if detail["Brands"] else "Не найдены при анализе"))
-            st.write("**Контакт на странице:**")
-            show_contact(detail["Contact"])
+            if detail["Contact"] or not (detail["Public contact candidate"] or detail["Contact page"]):
+                st.write("**Контакт на странице:**")
+                show_contact(detail["Contact"])
         if detail["Review note"]:
             st.caption("Дополнительная проверка: " + detail["Review note"])
         if detail["Public contact candidate"]:
@@ -317,11 +327,14 @@ else:
             st.caption("Публичный адрес; его назначение для партнёрств не подтверждено.")
             if detail["Contact candidate source"]:
                 st.link_button("Открыть источник контакта ↗", str(detail["Contact candidate source"]))
-        if detail["Contact page"]:
+        if detail["Contact page"] and detail["Contact page"] != detail["Contact candidate source"]:
             st.link_button("Страница контактов сайта ↗", str(detail["Contact page"]))
             st.caption("Ссылка найдена на странице сайта; назначение для партнёрств не подтверждено.")
         if detail["Status"] == "complete" and detail["Error"]:
             st.caption(friendly_error(detail["Error"]))
+        source_labels = {"restored_from_google_web": "Восстановлена провайдером через Google Web", "original_or_verification_unavailable": "Исходная либо результат проверки недоступен", "verification_not_requested": "Проверка источника не запрашивалась", "unknown": "Неизвестен", "fictional_demo": "Демо-данные"}
+        st.caption("Источник позиции: " + source_labels.get(str(detail["SERP source"]), str(detail["SERP source"])))
+        st.caption("Источник содержимого: " + str(detail["Page source"]))
         if detail["Evidence"]:
             st.caption("Подтверждение из анализа:")
             st.json(detail["Evidence"])
@@ -355,6 +368,6 @@ if partial_rows:
         partial_view["Brands"] = partial_view["Brands"].apply(lambda value: ", ".join(json.loads(value)) if isinstance(value, str) and value else "")
         partial_view["Relevance"] = partial_view["Relevance"].map(relevance_labels).fillna("Нет анализа")
         partial_view = partial_view.rename(columns={**column_labels, "Run": "Запуск", "Note": "Причина проверки"})
-        st.dataframe(partial_view, hide_index=True, width="stretch", column_order=["Ссылка на страницу", "Запуск", "Дата", "Позиция", "Домен", "Запрос", "Оценка AI", "Бренды", "Причина проверки"], column_config={"Ссылка на страницу": st.column_config.LinkColumn("Ссылка на страницу", display_text="Открыть сайт ↗")})
+        st.dataframe(partial_view, hide_index=True, width="stretch", column_order=["Ссылка на страницу", "Запуск", "Дата", "Позиция", "Домен", "Запрос", "Оценка", "Бренды", "Причина проверки"], column_config={"Ссылка на страницу": st.column_config.LinkColumn("Ссылка на страницу", display_text="Открыть сайт ↗")})
 
 st.markdown('<div class="footer"><span>✳ &nbsp; Affiliate Finder</span><span>Просмотр сохранённых результатов без новых запросов</span></div>', unsafe_allow_html=True)

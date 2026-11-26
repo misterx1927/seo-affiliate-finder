@@ -37,7 +37,7 @@ The [reviewed 25 November run](results/run-7-reviewed.csv) contains 100 position
 
 The original run’s reported search charges were **$0.046**; its reported 106,981 input and 2,704 output tokens cost approximately **$0.0121**, or **$0.0581** combined at the then-listed [model prices](https://developers.openai.com/api/docs/models/gpt-6-luna). Recovery and diagnostics cost extra, and unreported charges are excluded. Check [current search pricing](https://dataforseo.com/pricing/google-serp/google-organic-serp-api) and provider billing.
 
-An exploratory [comparison for one keyword](results/SERP_COMPARISON.md) includes a direct desktop Google check; it does not verify Canadian mobile rankings.
+An exploratory [SerpApi comparison](results/SERPAPI_COMPARISON_2026-11-26.md) covers all ten keywords: eight complete provider-to-provider comparisons and two partial ones. The providers differed substantially, and neither result is ground truth. A separate [diagnostic](results/SERP_COMPARISON.md) includes a direct desktop Google check, which does not verify Canadian mobile rankings.
 
 ## Choices and limitations
 

@@ -17,3 +17,12 @@ class SnapshotTests(unittest.TestCase):
         self.assertEqual(len({row['URL'] for row in rows}), 69)
         self.assertEqual(sum(row['SnapshotSerpSource'] == 'restored_from_google_web' for row in rows), 87)
         self.assertEqual(sum(row['Status'] == 'complete' for row in {r['URL']: r for r in rows}.values()), 35)
+
+    def test_updated_snapshot_records_truncated_ai_source(self):
+        rows = load_snapshot(Path(__file__).resolve().parents[1] / 'results' / 'run-7-ai-updated.csv')
+        unique = {r['URL']: r for r in rows}
+        self.assertEqual(len(unique), 69)
+        self.assertEqual(sum(row['Status'] == 'complete' for row in unique.values()), 36)
+        recovered = unique['https://www.casino.org/canada/']
+        self.assertEqual(recovered['Status'], 'complete')
+        self.assertIn('40 000', recovered['SnapshotReviewNote'])

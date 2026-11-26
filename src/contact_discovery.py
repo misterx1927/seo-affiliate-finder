@@ -86,6 +86,52 @@ def public_email_candidates(text: str) -> list[str]:
     return emails
 
 
+def cloudflare_email_candidates(content: bytes, charset: str) -> list[str]:
+    """Decode public Cloudflare-protected email links in fetched HTML.
+
+    Only explicit email-protection attributes are considered; these addresses
+    remain unverified candidates just like addresses visible as plain text.
+    """
+    try:
+        html = content.decode(charset, errors='replace')
+    except LookupError:
+        return []
+
+    class ProtectedEmails(HTMLParser):
+        def __init__(self):
+            super().__init__(convert_charrefs=True)
+            self.encoded = []
+
+        def handle_starttag(self, tag, attrs):
+            if tag not in ('a', 'span'):
+                return
+            for key, value in attrs:
+                if not value:
+                    continue
+                if key == 'data-cfemail':
+                    self.encoded.append(value)
+                elif key == 'href' and '/cdn-cgi/l/email-protection#' in value:
+                    self.encoded.append(value.rsplit('#', 1)[-1])
+
+    parser = ProtectedEmails()
+    try:
+        parser.feed(html)
+    except (ValueError, RecursionError):
+        return []
+    decoded = []
+    for value in parser.encoded:
+        try:
+            raw = bytes.fromhex(value)
+            if len(raw) < 2 or len(raw) > 255:
+                continue
+            address = bytes(char ^ raw[0] for char in raw[1:]).decode('ascii')
+        except (ValueError, UnicodeDecodeError):
+            continue
+        if _EMAIL.fullmatch(address):
+            decoded.extend(public_email_candidates(address))
+    return list(dict.fromkeys(decoded))
+
+
 def choose_contact(emails: list[str], source_url: str) -> str | None:
     """Only accept same-host mailboxes and never guess between ambiguous ones."""
     host = (urlsplit(source_url).hostname or '').lower().removeprefix('www.')

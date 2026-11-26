@@ -93,5 +93,20 @@
     "email": "contact@casino.ca",
     "source": "https://www.casino.ca/contact/",
     "contact_page": "https://www.casino.ca/contact/"
+  },
+  "pokertube.com": {
+    "email": "",
+    "source": "https://www.pokertube.com/contact",
+    "contact_page": "https://www.pokertube.com/contact"
+  },
+  "squawka.com": {
+    "email": "",
+    "source": "https://www.squawka.com/ca/help-and-faqs/",
+    "contact_page": "https://www.squawka.com/ca/help-and-faqs/"
+  },
+  "sigma.world": {
+    "email": "",
+    "source": "https://sigma.world/contact/",
+    "contact_page": "https://sigma.world/contact/"
   }
 }

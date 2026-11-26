@@ -253,8 +253,6 @@ complete_pages = unique_pages[unique_pages["Status"] == "complete"]
 supplemental_pages = unique_pages[unique_pages["Status"] == "supplemental"]
 unprocessed_pages = len(unique_pages) - len(complete_pages) - len(supplemental_pages)
 uncertain_pages = int((unique_pages[unique_pages["Status"].isin(["complete", "supplemental"])]["Relevance"] == "needs_review").sum())
-coverage = len(complete_pages) / len(unique_pages) if len(unique_pages) else 0.0
-st.progress(coverage, text=f"AI-анализ: {len(complete_pages)} из {len(unique_pages)} страниц")
 st.caption(f"Дополнительная проверка: {len(supplemental_pages)} · Нет данных: {unprocessed_pages} · Неоднозначно: {uncertain_pages}")
 if not is_demo and "SERP source" in current.columns:
     restored = int((current["SERP source"] == "restored_from_google_web").sum())

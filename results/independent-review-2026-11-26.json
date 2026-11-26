@@ -1,4 +1,9 @@
 {
+  "https://www.casinoslists.com/ca/no-deposit-bonus": {
+    "relevance": "yes",
+    "brands": ["LunaLoots Casino", "Lemon Casino", "Magicianbet Casino"],
+    "note": "Частичная ручная проверка индексированной версии страницы от 26.11.2026: рейтинг казино с партнёрскими ссылками. Прямое открытие страницы вернуло ошибку; бренды приведены выборочно, список не полный. Источник: https://www.casinoslists.com/ca/no-deposit-bonus"
+  },
   "https://ca.888casino.com/": {
     "relevance": "no",
     "brands": [
@@ -195,33 +200,71 @@
   },
   "https://www.casino.ca/highest-payouts/": {
     "relevance": "yes",
-    "brands": ["Lucky Ones", "RetroBet Casino", "The Clubhouse Casino", "Wagibet", "JustCasino", "WinSpirit", "Slotornado", "Betya", "Boho Casino", "Winberry"],
+    "brands": [
+      "Lucky Ones",
+      "RetroBet Casino",
+      "The Clubhouse Casino",
+      "Wagibet",
+      "JustCasino",
+      "WinSpirit",
+      "Slotornado",
+      "Betya",
+      "Boho Casino",
+      "Winberry"
+    ],
     "contact_page": "https://www.casino.ca/contact/",
     "contact": "contact@casino.ca",
     "note": "Рейтинг казино по размеру выплат. Источник: https://www.casino.ca/highest-payouts/ (индексированная версия, проверена 26.11.2026). Список брендов частичный, размещение не подтверждено; ручная проверка, не AI-анализ."
   },
   "https://www.casino.ca/free-spins-casinos/": {
     "relevance": "yes",
-    "brands": ["Mirax", "Spin Palace", "Katsubet", "7Bit", "Bluffbet", "HotSlots"],
+    "brands": [
+      "Mirax",
+      "Spin Palace",
+      "Katsubet",
+      "7Bit",
+      "Bluffbet",
+      "HotSlots"
+    ],
     "contact_page": "https://www.casino.ca/contact/",
     "contact": "contact@casino.ca",
     "note": "Сравнение бонусов разных казино. Источник: https://www.casino.ca/free-spins-casinos/ (индексированная версия, проверена 26.11.2026). Список брендов частичный, размещение не подтверждено; ручная проверка, не AI-анализ."
   },
   "https://www.casino.ca/payments/interac/": {
     "relevance": "yes",
-    "brands": ["WestAce", "The Clubhouse Casino", "Dudespin", "Slots Gallery", "Boho Casino"],
+    "brands": [
+      "WestAce",
+      "The Clubhouse Casino",
+      "Dudespin",
+      "Slots Gallery",
+      "Boho Casino"
+    ],
     "contact_page": "https://www.casino.ca/contact/",
     "contact": "contact@casino.ca",
     "note": "Сравнение казино по скорости вывода через Interac. Источник: https://www.casino.ca/payments/interac/ (индексированная версия, проверена 26.11.2026). Список брендов частичный, размещение не подтверждено; ручная проверка, не AI-анализ."
   },
   "https://www.nodepositbonus.cc/no-deposit-bonus-canada/": {
     "relevance": "yes",
-    "brands": ["Brango", "Decode Casino", "Lucky Creek Casino", "Goat Spins", "Casino Extreme", "Ritz Slots", "Eternal Slots", "Uptown Aces", "Dream Royale", "Mr.O"],
+    "brands": [
+      "Brango",
+      "Decode Casino",
+      "Lucky Creek Casino",
+      "Goat Spins",
+      "Casino Extreme",
+      "Ritz Slots",
+      "Eternal Slots",
+      "Uptown Aces",
+      "Dream Royale",
+      "Mr.O"
+    ],
     "note": "Подборка бонусов разных казино. Источник: https://www.nodepositbonus.cc/no-deposit-bonus-canada/ (индексированная версия, проверена 26.11.2026). Список брендов частичный, размещение не подтверждено; ручная проверка, не AI-анализ."
   },
   "https://www.casino.org/canada/": {
     "relevance": "yes",
-    "brands": ["PlayNow", "ALC"],
+    "brands": [
+      "PlayNow",
+      "ALC"
+    ],
     "note": "Редакционный обзор казино и условий по провинциям. Источник: https://www.casino.org/canada/ (индексированная версия, проверена 26.11.2026). Список брендов частичный, размещение не подтверждено; ручная проверка, не AI-анализ."
   },
   "https://on.spingenie.ca/": {

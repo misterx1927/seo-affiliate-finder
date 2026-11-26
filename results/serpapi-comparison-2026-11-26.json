@@ -1,0 +1,1203 @@
+{
+  "date": "2026-11-26",
+  "comparison": "Near-contemporaneous independent providers, not Google ground truth",
+  "incomplete_serpapi_keywords": [
+    "real money online casino canada",
+    "online casino ontario"
+  ],
+  "dataforseo_reported_cost_usd": 0.05,
+  "results": [
+    {
+      "keyword": "online casino canada",
+      "started_at_utc": "2026-11-26T19:13:29.632631+00:00",
+      "finished_at_utc": "2026-11-26T19:14:25.419885+00:00",
+      "settings": "google.ca, Canada, English, mobile; SerpApi cache disabled",
+      "serpapi": [
+        {
+          "rank": 1,
+          "url": "https://ca.888casino.com/"
+        },
+        {
+          "rank": 2,
+          "url": "https://www.betvictor.com/en-ca/casino"
+        },
+        {
+          "rank": 3,
+          "url": "https://www.betmgm.ca/en/casino"
+        },
+        {
+          "rank": 4,
+          "url": "https://ca.trustpilot.com/categories/casino"
+        },
+        {
+          "rank": 5,
+          "url": "https://www.leovegas.com/en-ca"
+        },
+        {
+          "rank": 6,
+          "url": "https://www.playojo.com/ca/"
+        },
+        {
+          "rank": 7,
+          "url": "https://www.casino.ca/"
+        },
+        {
+          "rank": 8,
+          "url": "https://www.alc.ca/content/alc/en/play-online/casino.html"
+        },
+        {
+          "rank": 9,
+          "url": "https://www.powerplay.com/casino/"
+        },
+        {
+          "rank": 10,
+          "url": "https://www.olg.ca/en/online-casino.html"
+        }
+      ],
+      "dataforseo": [
+        {
+          "rank": 1,
+          "url": "https://ca.888casino.com/",
+          "checks": null
+        },
+        {
+          "rank": 2,
+          "url": "https://www.betvictor.com/en-ca/casino",
+          "checks": null
+        },
+        {
+          "rank": 3,
+          "url": "https://www.casino.ca/",
+          "checks": null
+        },
+        {
+          "rank": 4,
+          "url": "https://www.powerplay.com/casino/",
+          "checks": null
+        },
+        {
+          "rank": 5,
+          "url": "https://www.leovegas.com/en-ca",
+          "checks": null
+        },
+        {
+          "rank": 6,
+          "url": "https://ca.trustpilot.com/categories/casino",
+          "checks": null
+        },
+        {
+          "rank": 7,
+          "url": "https://www.playojo.com/ca/",
+          "checks": null
+        },
+        {
+          "rank": 8,
+          "url": "https://www.alc.ca/content/alc/en/play-online/casino.html",
+          "checks": null
+        },
+        {
+          "rank": 9,
+          "url": "https://www.betmgm.ca/en/casino",
+          "checks": null
+        },
+        {
+          "rank": 10,
+          "url": "https://www.olg.ca/en/online-casino.html",
+          "checks": null
+        }
+      ],
+      "dataforseo_reported_cost": 0.006,
+      "comparison": {
+        "exact_url_overlap": 10,
+        "exact_rank_matches": 5
+      },
+      "limitations": "Different providers/times. Agreement does not establish Google ground truth. DataForSEO from_web flags are retained."
+    },
+    {
+      "keyword": "best online casino canada",
+      "started_at_utc": "2026-11-26T19:15:01.293151+00:00",
+      "finished_at_utc": "2026-11-26T19:16:01.155027+00:00",
+      "settings": "google.ca, Canada, English, mobile; SerpApi cache disabled",
+      "serpapi": [
+        {
+          "rank": 1,
+          "url": "https://www.casino.ca/"
+        },
+        {
+          "rank": 2,
+          "url": "https://vancouversun.com/sponsored/life-sponsored/best-paying-online-casino-in-canada-top-paying-gambling-sites"
+        },
+        {
+          "rank": 3,
+          "url": "https://globalnews.ca/content/11654441/best-online-casinos-in-canada/"
+        },
+        {
+          "rank": 4,
+          "url": "https://www.casino.org/canada/"
+        },
+        {
+          "rank": 5,
+          "url": "https://www.livescore.com/en-ca/online-casinos/"
+        },
+        {
+          "rank": 6,
+          "url": "https://nationalpost.com/sponsored/safe-online-casinos-canada/"
+        },
+        {
+          "rank": 7,
+          "url": "https://bookies.com/ca/online-casinos"
+        },
+        {
+          "rank": 8,
+          "url": "https://www.youtube.com/watch?v=dJmuklnWJZ0"
+        },
+        {
+          "rank": 9,
+          "url": "https://www.thespec.com/sponsored-sections/best-online-casinos-in-canada/article_fa73433c-8fd5-5e83-b00a-578557886a19.html"
+        },
+        {
+          "rank": 10,
+          "url": "https://calgaryherald.com/sponsored/life-sponsored/top-online-gambling-sites-best-online-casinos-for-canadians"
+        }
+      ],
+      "dataforseo": [
+        {
+          "rank": 1,
+          "url": "https://www.betmgm.ca/en/casino",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 2,
+          "url": "https://ca.trustpilot.com/categories/casino",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 3,
+          "url": "https://www.livescore.com/en-ca/online-casinos/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 4,
+          "url": "https://nationalpost.com/sponsored/best-online-casinos-canada/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 5,
+          "url": "https://calgaryherald.com/sponsored/life-sponsored/top-online-gambling-sites-best-online-casinos-for-canadians",
+          "checks": null
+        },
+        {
+          "rank": 6,
+          "url": "https://www.youtube.com/watch?v=dJmuklnWJZ0",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 7,
+          "url": "https://www.rotowire.com/ca/casinos",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 8,
+          "url": "https://bookies.com/ca/online-casinos",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 9,
+          "url": "https://www.covers.com/casino/canada",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 10,
+          "url": "https://www.youtube.com/watch?v=mx_NdkmQ2Nw",
+          "checks": [
+            "from_web"
+          ]
+        }
+      ],
+      "dataforseo_reported_cost": 0.004,
+      "comparison": {
+        "exact_url_overlap": 4,
+        "exact_rank_matches": 0
+      },
+      "limitations": "Different providers/times. Agreement does not establish Google ground truth. DataForSEO from_web flags are retained."
+    },
+    {
+      "keyword": "top 10 online casinos canada",
+      "started_at_utc": "2026-11-26T19:15:01.298994+00:00",
+      "finished_at_utc": "2026-11-26T19:16:13.753859+00:00",
+      "settings": "google.ca, Canada, English, mobile; SerpApi cache disabled",
+      "serpapi": [
+        {
+          "rank": 1,
+          "url": "https://globalnews.ca/content/11654441/best-online-casinos-in-canada/"
+        },
+        {
+          "rank": 2,
+          "url": "https://ca.trustpilot.com/categories/casino"
+        },
+        {
+          "rank": 3,
+          "url": "https://www.betmgm.ca/en/casino"
+        },
+        {
+          "rank": 4,
+          "url": "https://nationalpost.com/sponsored/best-online-casinos-canada/"
+        },
+        {
+          "rank": 5,
+          "url": "https://www.livescore.com/en-ca/online-casinos/"
+        },
+        {
+          "rank": 6,
+          "url": "https://www.casino.ca/highest-payouts/"
+        },
+        {
+          "rank": 7,
+          "url": "https://www.rotowire.com/ca/casinos"
+        },
+        {
+          "rank": 8,
+          "url": "https://www.youtube.com/watch?v=dHJM362ZXjE"
+        },
+        {
+          "rank": 9,
+          "url": "https://www.covers.com/casino/canada"
+        },
+        {
+          "rank": 10,
+          "url": "https://ottawacitizen.com/sponsored/life-sponsored/best-gambling-sites-canada"
+        }
+      ],
+      "dataforseo": [
+        {
+          "rank": 1,
+          "url": "https://www.casino.ca/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 2,
+          "url": "https://globalnews.ca/content/11654441/best-online-casinos-in-canada/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 3,
+          "url": "https://ca.888casino.com/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 4,
+          "url": "https://ca.trustpilot.com/categories/casino",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 5,
+          "url": "https://www.betmgm.ca/en/casino",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 6,
+          "url": "https://nationalpost.com/sponsored/best-online-casinos-canada/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 7,
+          "url": "https://www.casino.org/canada/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 8,
+          "url": "https://www.livescore.com/en-ca/online-casinos/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 9,
+          "url": "https://www.youtube.com/watch?v=dHJM362ZXjE",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 10,
+          "url": "https://bookies.com/ca/online-casinos",
+          "checks": [
+            "from_web"
+          ]
+        }
+      ],
+      "dataforseo_reported_cost": 0.004,
+      "comparison": {
+        "exact_url_overlap": 6,
+        "exact_rank_matches": 0
+      },
+      "limitations": "Different providers/times. Agreement does not establish Google ground truth. DataForSEO from_web flags are retained."
+    },
+    {
+      "keyword": "new online casinos canada",
+      "started_at_utc": "2026-11-26T19:15:03.844402+00:00",
+      "finished_at_utc": "2026-11-26T19:16:01.744377+00:00",
+      "settings": "google.ca, Canada, English, mobile; SerpApi cache disabled",
+      "serpapi": [
+        {
+          "rank": 1,
+          "url": "https://casino.guru/canada/bonus/no-deposit"
+        },
+        {
+          "rank": 2,
+          "url": "https://www.dimers.com/online-casinos/ca/new"
+        },
+        {
+          "rank": 3,
+          "url": "https://www.gambling.com/ca"
+        },
+        {
+          "rank": 4,
+          "url": "https://casinoalpha.ca/casinos/new/"
+        },
+        {
+          "rank": 5,
+          "url": "https://www.thelines.com/ca/online-casinos/"
+        },
+        {
+          "rank": 6,
+          "url": "https://blog.rocketplay.com/"
+        },
+        {
+          "rank": 7,
+          "url": "https://mr-gamble.com/ca/online-casino/new-sites/"
+        },
+        {
+          "rank": 8,
+          "url": "https://casinopuma.com/en-ca/new-casinos-in-canada/"
+        },
+        {
+          "rank": 9,
+          "url": "https://casinomary.com/new-online-casinos-canada/"
+        },
+        {
+          "rank": 10,
+          "url": "https://gamblingsage.org/casinos-canada/"
+        }
+      ],
+      "dataforseo": [
+        {
+          "rank": 1,
+          "url": "https://www.covers.com/casino/canada",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 2,
+          "url": "https://www.youtube.com/watch?v=dJmuklnWJZ0",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 3,
+          "url": "https://www.casino.ca/bonus/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 4,
+          "url": "https://www.casino.org/canada/new/",
+          "checks": null
+        },
+        {
+          "rank": 5,
+          "url": "https://www.gambling.com/ca/online-casinos/new",
+          "checks": null
+        },
+        {
+          "rank": 6,
+          "url": "https://www.slotozilla.com/ca/no-deposit-bonus",
+          "checks": null
+        },
+        {
+          "rank": 7,
+          "url": "https://pmnewsnigeria.com/casino/ca/new/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 8,
+          "url": "https://www.betmgm.ca/en/casino",
+          "checks": null
+        },
+        {
+          "rank": 9,
+          "url": "https://casinocanada.com/casinos/new-casinos/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 10,
+          "url": "https://www.youtube.com/watch?v=yfXkpW36u1s",
+          "checks": [
+            "is_video"
+          ]
+        }
+      ],
+      "dataforseo_reported_cost": 0.006,
+      "comparison": {
+        "exact_url_overlap": 0,
+        "exact_rank_matches": 0
+      },
+      "limitations": "Different providers/times. Agreement does not establish Google ground truth. DataForSEO from_web flags are retained."
+    },
+    {
+      "keyword": "interac casino",
+      "started_at_utc": "2026-11-26T19:16:01.562588+00:00",
+      "finished_at_utc": "2026-11-26T19:17:10.157830+00:00",
+      "settings": "google.ca, Canada, English, mobile; SerpApi cache disabled",
+      "serpapi": [
+        {
+          "rank": 1,
+          "url": "https://www.thelines.com/ca/online-casinos/interac/"
+        },
+        {
+          "rank": 2,
+          "url": "https://fruityslots.com/ca/interac-casinos/"
+        },
+        {
+          "rank": 3,
+          "url": "https://gamblerzone.ca/online-interac-payment-casinos/"
+        },
+        {
+          "rank": 4,
+          "url": "https://casinoguides.ca/payments/interac/"
+        },
+        {
+          "rank": 5,
+          "url": "https://yummyspins.com/ca/best-interac-casinos-in-canada/"
+        },
+        {
+          "rank": 6,
+          "url": "https://casinoprofessor.ca/online-casinos/interac/"
+        },
+        {
+          "rank": 7,
+          "url": "https://www.wisergamblers.com/ca/payment-methods/interac/"
+        },
+        {
+          "rank": 8,
+          "url": "https://casinosinterac.com/en-ca/"
+        },
+        {
+          "rank": 9,
+          "url": "https://interaccasinoguide.ca/"
+        },
+        {
+          "rank": 10,
+          "url": "https://www.thecasinoedit.com/guides/best-interac-casinos-canada"
+        }
+      ],
+      "dataforseo": [
+        {
+          "rank": 1,
+          "url": "https://www.livescore.com/en-ca/online-casinos/interac/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 2,
+          "url": "https://www.sportsline.com/casinos/canada/interac/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 3,
+          "url": "https://businessexaminer.ca/victoria-articles/item/interac-online-casinos/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 4,
+          "url": "https://sigma.world/ca/play/payments/interac/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 5,
+          "url": "https://www.casino.ca/payments/interac/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 6,
+          "url": "https://globalnews.ca/content/11754220/best-interac-casinos-canada-2026-fast-deposits-secure-withdrawals/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 7,
+          "url": "https://www.pokertube.com/ca/article/interac-casinos",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 8,
+          "url": "https://www.casinos.com/ca/interac",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 9,
+          "url": "https://www.gambling.com/ca/online-casinos/interac",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 10,
+          "url": "https://www.newcasinocanada.ca/interac-casinos",
+          "checks": [
+            "from_web"
+          ]
+        }
+      ],
+      "dataforseo_reported_cost": 0.006,
+      "comparison": {
+        "exact_url_overlap": 0,
+        "exact_rank_matches": 0
+      },
+      "limitations": "Different providers/times. Agreement does not establish Google ground truth. DataForSEO from_web flags are retained."
+    },
+    {
+      "keyword": "fast payout casino canada",
+      "started_at_utc": "2026-11-26T19:16:02.103132+00:00",
+      "finished_at_utc": "2026-11-26T19:16:55.249466+00:00",
+      "settings": "google.ca, Canada, English, mobile; SerpApi cache disabled",
+      "serpapi": [
+        {
+          "rank": 1,
+          "url": "https://www.casino.ca/fast-withdrawals/"
+        },
+        {
+          "rank": 2,
+          "url": "https://globalnews.ca/content/11737933/best-online-casinos-in-canada-with-fastest-payout-2026/"
+        },
+        {
+          "rank": 3,
+          "url": "https://www.casino.org/canada/payment/fastest-withdrawals/"
+        },
+        {
+          "rank": 4,
+          "url": "https://businessexaminer.ca/victoria-articles/item/fastest-withdrawal-casinos-canada/"
+        },
+        {
+          "rank": 5,
+          "url": "https://www.rotowire.com/ca/casinos/instant-withdrawal"
+        },
+        {
+          "rank": 6,
+          "url": "https://blog.rocketplay.com/fast-withdrawal"
+        },
+        {
+          "rank": 7,
+          "url": "https://www.gambling.com/ca/online-casinos/fastest-payout"
+        },
+        {
+          "rank": 8,
+          "url": "https://www.covers.com/casino/canada/payment/fast-payout"
+        },
+        {
+          "rank": 9,
+          "url": "https://casinocanada.com/casinos/fast-payout/"
+        },
+        {
+          "rank": 10,
+          "url": "https://ca.888casino.com/"
+        }
+      ],
+      "dataforseo": [
+        {
+          "rank": 1,
+          "url": "https://www.casino.ca/fast-withdrawals/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 2,
+          "url": "https://globalnews.ca/content/11737933/best-online-casinos-in-canada-with-fastest-payout-2026/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 3,
+          "url": "https://www.casino.org/canada/payment/fastest-withdrawals/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 4,
+          "url": "https://businessexaminer.ca/victoria-articles/item/fastest-withdrawal-casinos-canada/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 5,
+          "url": "https://www.rotowire.com/ca/casinos/instant-withdrawal",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 6,
+          "url": "https://blog.rocketplay.com/fast-withdrawal",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 7,
+          "url": "https://www.gambling.com/ca/online-casinos/fastest-payout",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 8,
+          "url": "https://www.covers.com/casino/canada/payment/fast-payout",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 9,
+          "url": "https://casinocanada.com/casinos/fast-payout/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 10,
+          "url": "https://ca.888casino.com/",
+          "checks": [
+            "from_web"
+          ]
+        }
+      ],
+      "dataforseo_reported_cost": 0.004,
+      "comparison": {
+        "exact_url_overlap": 10,
+        "exact_rank_matches": 10
+      },
+      "limitations": "Different providers/times. Agreement does not establish Google ground truth. DataForSEO from_web flags are retained."
+    },
+    {
+      "keyword": "no deposit bonus canada",
+      "started_at_utc": "2026-11-26T19:16:14.139623+00:00",
+      "finished_at_utc": "2026-11-26T19:17:08.643805+00:00",
+      "settings": "google.ca, Canada, English, mobile; SerpApi cache disabled",
+      "serpapi": [
+        {
+          "rank": 1,
+          "url": "https://www.livescore.com/en-ca/online-casinos/free-spins-no-deposit/"
+        },
+        {
+          "rank": 2,
+          "url": "https://ca.888casino.com/"
+        },
+        {
+          "rank": 3,
+          "url": "https://casino.guru/canada/bonus/no-deposit"
+        },
+        {
+          "rank": 4,
+          "url": "https://chipy.com/ca/bonus-blog/no-deposit-sign-up-bonus"
+        },
+        {
+          "rank": 5,
+          "url": "https://www.slotozilla.com/ca/no-deposit-bonus"
+        },
+        {
+          "rank": 6,
+          "url": "https://casinoalpha.ca/bonuses/no-deposit/5/"
+        },
+        {
+          "rank": 7,
+          "url": "https://www.casino.org/canada/bonus-no-deposit/"
+        },
+        {
+          "rank": 8,
+          "url": "https://www.casinoslists.com/ca/no-deposit-bonus"
+        },
+        {
+          "rank": 9,
+          "url": "https://www.gambling.com/ca/online-casinos/no-deposit-bonus"
+        },
+        {
+          "rank": 10,
+          "url": "https://lcb.org/bonuses/no-deposit-codes/canada"
+        }
+      ],
+      "dataforseo": [
+        {
+          "rank": 1,
+          "url": "https://www.livescore.com/en-ca/online-casinos/free-spins-no-deposit/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 2,
+          "url": "https://www.slotozilla.com/ca/no-deposit-bonus",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 3,
+          "url": "https://casinoalpha.ca/bonuses/no-deposit/5/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 4,
+          "url": "https://chipy.com/ca/bonus-blog/no-deposit-sign-up-bonus",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 5,
+          "url": "https://www.casinoslists.com/ca/no-deposit-bonus",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 6,
+          "url": "https://www.casino.ca/no-deposit/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 7,
+          "url": "https://slotcatalog.com/en-ca/no-deposit-bonus",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 8,
+          "url": "https://casinoalpha.ca/bonuses/free-spins/50/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 9,
+          "url": "https://www.askgamblers.com/casino-bonuses/countries/ca/no-deposit",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 10,
+          "url": "https://www.youtube.com/watch?v=oCDGH2paPaE",
+          "checks": [
+            "from_web"
+          ]
+        }
+      ],
+      "dataforseo_reported_cost": 0.006,
+      "comparison": {
+        "exact_url_overlap": 5,
+        "exact_rank_matches": 2
+      },
+      "limitations": "Different providers/times. Agreement does not establish Google ground truth. DataForSEO from_web flags are retained."
+    },
+    {
+      "keyword": "free spins no deposit canada",
+      "started_at_utc": "2026-11-26T19:16:55.609097+00:00",
+      "finished_at_utc": "2026-11-26T19:17:58.070917+00:00",
+      "settings": "google.ca, Canada, English, mobile; SerpApi cache disabled",
+      "serpapi": [
+        {
+          "rank": 1,
+          "url": "https://www.livescore.com/en-ca/online-casinos/free-spins-no-deposit/"
+        },
+        {
+          "rank": 2,
+          "url": "https://ca.888casino.com/"
+        },
+        {
+          "rank": 3,
+          "url": "https://casinoalpha.ca/bonuses/free-spins/"
+        },
+        {
+          "rank": 4,
+          "url": "https://casino.guru/canada/bonus/free-spins"
+        },
+        {
+          "rank": 5,
+          "url": "https://chipy.com/ca/bonus-blog/free-spins-no-deposit"
+        },
+        {
+          "rank": 6,
+          "url": "https://www.slotozilla.com/ca/free-spins"
+        },
+        {
+          "rank": 7,
+          "url": "https://www.casino.org/canada/bonus/free-spins/"
+        },
+        {
+          "rank": 8,
+          "url": "https://www.casino.ca/free-spins-casinos/"
+        },
+        {
+          "rank": 9,
+          "url": "https://www.slotsmate.com/ca/100-free-spins"
+        },
+        {
+          "rank": 10,
+          "url": "https://casino.guru/canada/bonus/no-deposit"
+        }
+      ],
+      "dataforseo": [
+        {
+          "rank": 1,
+          "url": "https://www.livescore.com/en-ca/online-casinos/free-spins-no-deposit/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 2,
+          "url": "https://ca.888casino.com/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 3,
+          "url": "https://casino.guru/canada/bonus/free-spins",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 4,
+          "url": "https://chipy.com/ca/bonus-blog/free-spins-no-deposit",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 5,
+          "url": "https://www.slotozilla.com/ca/free-spins/100-free-spins-no-deposit",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 6,
+          "url": "https://www.casino.ca/free-spins-casinos/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 7,
+          "url": "https://casinoalpha.ca/bonuses/free-spins/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 8,
+          "url": "https://www.casino.org/canada/bonus/free-spins/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 9,
+          "url": "https://www.slotsmate.com/ca/100-free-spins",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 10,
+          "url": "https://www.gambling.com/ca/online-casinos/no-deposit-bonus",
+          "checks": [
+            "from_web"
+          ]
+        }
+      ],
+      "dataforseo_reported_cost": 0.006,
+      "comparison": {
+        "exact_url_overlap": 8,
+        "exact_rank_matches": 3
+      },
+      "limitations": "Different providers/times. Agreement does not establish Google ground truth. DataForSEO from_web flags are retained."
+    }
+  ],
+  "partial_comparisons": [
+    {
+      "keyword": "real money online casino canada",
+      "serpapi_created_at_utc": "2026-11-26 19:15:02 UTC",
+      "dataforseo_finished_at_utc": "2026-11-26T19:22:24.619758+00:00",
+      "settings": "Google Canada, English, mobile; SerpApi archived response",
+      "serpapi": [
+        {
+          "rank": 1,
+          "url": "https://nostrabet.com/ca/online-casinos-canada/"
+        }
+      ],
+      "dataforseo": [
+        {
+          "rank": 1,
+          "url": "https://www.powerplay.com/casino/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 2,
+          "url": "https://www.betmgm.ca/en/casino",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 3,
+          "url": "https://www.playojo.com/ca/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 4,
+          "url": "https://www.betsafe.com/ca/casino",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 5,
+          "url": "https://www.partycasino.com/en-ca/games",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 6,
+          "url": "https://rg.org/en-ca/casinos/real-money-casinos",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 7,
+          "url": "https://on.spingenie.ca/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 8,
+          "url": "https://www.livescore.com/en-ca/online-casinos/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 9,
+          "url": "https://chipy.com/casinos/country/canada",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 10,
+          "url": "https://nationalpost.com/sponsored/real-money-online-casinos-canada/",
+          "checks": [
+            "from_web"
+          ]
+        }
+      ],
+      "dataforseo_reported_cost": 0.004,
+      "comparison": {
+        "exact_url_overlap": 0,
+        "exact_rank_matches": 0
+      },
+      "limitations": "Incomplete SerpApi response, providers and request times differ; not ground truth."
+    },
+    {
+      "keyword": "online casino ontario",
+      "serpapi_created_at_utc": "2026-11-26 19:17:10 UTC",
+      "dataforseo_finished_at_utc": "2026-11-26T19:23:16.769059+00:00",
+      "settings": "Google Canada, English, mobile; SerpApi archived response",
+      "serpapi": [
+        {
+          "rank": 1,
+          "url": "https://igamingontario.ca/en"
+        },
+        {
+          "rank": 2,
+          "url": "https://www.olg.ca/en/online-casino.html"
+        },
+        {
+          "rank": 3,
+          "url": "https://www.leovegas.com/en-ca-on"
+        },
+        {
+          "rank": 4,
+          "url": "https://www.betmgm.ca/en/casino"
+        },
+        {
+          "rank": 5,
+          "url": "https://www.northstarbets.ca/casino"
+        },
+        {
+          "rank": 6,
+          "url": "https://casino.draftkings.com/on-ca-online-casino"
+        },
+        {
+          "rank": 7,
+          "url": "https://www.casino.org/canada/ontario/"
+        },
+        {
+          "rank": 8,
+          "url": "https://ca.888casino.com/"
+        },
+        {
+          "rank": 9,
+          "url": "https://www.playojo.com/ca/"
+        }
+      ],
+      "dataforseo": [
+        {
+          "rank": 1,
+          "url": "https://igamingontario.ca/en",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 2,
+          "url": "https://www.betmgm.ca/en/casino",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 3,
+          "url": "https://www.northstarbets.ca/casino",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 4,
+          "url": "https://www.leovegas.com/en-ca-on",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 5,
+          "url": "https://www.olg.ca/en/online-casino.html",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 6,
+          "url": "https://casino.draftkings.com/on-ca-online-casino",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 7,
+          "url": "https://ca.888casino.com/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 8,
+          "url": "https://www.casino.org/canada/ontario/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 9,
+          "url": "https://www.playojo.com/ca/",
+          "checks": [
+            "from_web"
+          ]
+        },
+        {
+          "rank": 10,
+          "url": "https://www.agco.ca/en/lottery-and-gaming/list-registered-internet-gaming-operators",
+          "checks": [
+            "from_web"
+          ]
+        }
+      ],
+      "dataforseo_reported_cost": 0.004,
+      "comparison": {
+        "exact_url_overlap": 9,
+        "exact_rank_matches": 3
+      },
+      "limitations": "Incomplete SerpApi response, providers and request times differ; not ground truth."
+    }
+  ]
+}

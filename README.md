@@ -12,7 +12,7 @@ py -m venv .venv
 .\.venv\Scripts\python -m streamlit run app.py
 ```
 
-Open the displayed URL. A fresh checkout defaults to **Сохранённый прогон**, showing the included [recorded results](results/) without API keys or paid calls. Alternatively, select **Демо** and click **Обновить демо** for fictional data. The dashboard also displays locally collected live results, filters, CSV/Excel exports and pages needing review. This setup was tested on Windows with Python 3.13 in an isolated copy without credentials or databases.
+Open the displayed URL. The dashboard defaults to **Сохранённый прогон**, showing the included [recorded results](results/run-7-ai-updated.csv) without API keys or paid calls. Alternatively, select **Демо** and click **Обновить демо** for fictional data, or **Реальные результаты** to view locally collected live results. The dashboard includes filters, CSV/Excel exports and pages needing review. This setup was tested on Windows with Python 3.13 in an isolated copy without credentials or databases.
 
 ## Collect real data
 
@@ -31,7 +31,7 @@ Optionally add `--verify-serp` to detect and replace potentially poisoned result
 
 ## Recorded results and cost
 
-The [reviewed 25 November run](results/run-7-reviewed.csv) contains 100 positions for ten queries, including 87 flagged as restored from Google Web. Among 69 unique URLs, 35 have accepted AI analyses (seven uncertain), 26 have separately identified supplementary reviews, and eight have no accepted analysis or supplementary review in the CSV. The dashboard includes two later partial reviews and additional public contacts, documented [here](results/COVERAGE_RECHECK.md); they do not change the historical CSV. Supplementary reviews are partial checks of indexed content, not AI outputs, and do not carry over to new collection dates. The snapshot includes documented manual corrections and is not a pristine model output. Public email candidates are separate from AI contacts and require verification. See the [20-URL sample audit](AUDIT_SAMPLE_2026-11-26.md) for evidence and limitations.
+The [reviewed 25 November run](results/run-7-reviewed.csv) contains 100 positions for ten queries, including 87 flagged as restored from Google Web. The dashboard uses a separate [updated snapshot](results/run-7-ai-updated.csv): 36 of 69 unique URLs have accepted AI analyses, including [one later analysis](results/AI_UPDATE_2026-11-26.md) based on truncated provider text. Additional indexed-page reviews and public contacts appear in the dashboard and are documented [here](results/COVERAGE_RECHECK.md); they do not change the historical CSV. Supplementary reviews are partial checks, not AI outputs, and do not carry over to new collection dates. The snapshot includes documented manual corrections and is not a pristine model output. Public email candidates are separate from AI contacts and require verification. See the [20-URL sample audit](AUDIT_SAMPLE_2026-11-26.md) for evidence and limitations.
 
 The original run’s reported search charges were **$0.046**; its reported 106,981 input and 2,704 output tokens cost approximately **$0.0121**, or **$0.0581** combined at the then-listed [model prices](https://developers.openai.com/api/docs/models/gpt-6-luna). Recovery and diagnostics cost extra, and unreported charges are excluded. Check [current search pricing](https://dataforseo.com/pricing/google-serp/google-organic-serp-api) and provider billing.
 

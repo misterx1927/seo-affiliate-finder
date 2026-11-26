@@ -144,7 +144,7 @@ with st.sidebar:
     st.caption("Поиск площадок для размещения казино-брендов")
     st.divider()
     st.markdown("**Источник данных**")
-    source = st.radio("Источник данных", ["Демо", "Реальные результаты", "Сохранённый прогон"], index=1 if live_results_exist() else 2, label_visibility="collapsed")
+    source = st.radio("Источник данных", ["Демо", "Реальные результаты", "Сохранённый прогон"], index=2, label_visibility="collapsed")
     if source == "Демо":
         st.caption("Вымышленные данные, без запросов к API.")
     else:
@@ -182,7 +182,7 @@ with connect("data/demo.db" if is_demo else "data/live.db") as conn:
         LEFT JOIN page_cache_provenance ps ON ps.url=o.url
         ORDER BY o.day DESC, o.keyword, o.position""").fetchall()
     if is_snapshot:
-        rows = load_snapshot("results/run-7-reviewed.csv")
+        rows = load_snapshot("results/run-7-ai-updated.csv")
     partial_rows = [] if is_demo or is_snapshot else conn.execute("""SELECT o.run_id AS Run, o.day AS Date, o.keyword AS Keyword,
         o.position AS Position, o.domain AS Domain, o.url AS URL,
         COALESCE(p.status, 'pending') AS Status, p.relevance AS Relevance,
@@ -200,7 +200,7 @@ with connect("data/demo.db" if is_demo else "data/live.db") as conn:
             item['Contact'] = ''
             item['Status'] = 'supplemental'
             item['Error'] = ''
-        item['Review note'] = review.get('note', '') if review else ''
+        item['Review note'] = review.get('note', '') if review else item.pop('SnapshotReviewNote', '')
         item['SERP source'] = 'fictional_demo' if is_demo else (item.pop('SnapshotSerpSource') if is_snapshot else serp_provenance(item['Position'], item.pop('WebRanks'), item.pop('VerificationRequested')))
         item['Page source'] = 'fictional_demo' if is_demo else ('Индексированная версия (дополнительная проверка)' if review else (item.pop('PageSource') or 'direct_or_unknown'))
         item['Public contact candidate'] = (review.get('contact', '') if review else '') or item.pop('ContactCandidate', '')

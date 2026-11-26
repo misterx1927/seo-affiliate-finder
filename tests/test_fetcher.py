@@ -66,6 +66,18 @@ class FetchTests(unittest.TestCase):
             with self.subTest(message=message), self.assertRaisesRegex(PageError, "manual review"):
                 extract_text(html)
 
+    def test_javascript_robot_gate_with_boilerplate_requires_review(self):
+        html = ("<h1>JavaScript is disabled</h1><p>In order to continue, "
+                "we need to verify that you're not a robot. Enable JavaScript "
+                "and reload the page.</p><footer>" + "Navigation. " * 120 + "</footer>").encode()
+        with self.assertRaisesRegex(PageError, "manual review"):
+            extract_text(html)
+
+    def test_javascript_article_without_robot_gate_is_not_blocked(self):
+        html = ("<article><h1>JavaScript is disabled</h1>" +
+                "This review discusses browser settings. " * 100 + "</article>").encode()
+        self.assertIn("browser settings", extract_text(html))
+
     def test_security_discussion_inside_long_article_is_not_a_challenge(self):
         html = ("<article><h1>Casino security</h1><p>" + "Detailed review. " * 200 +
                 "The sign-in page may ask, are you a robot? " + "Details. " * 30 + "</p></article>").encode()
@@ -113,5 +125,28 @@ class FetchTests(unittest.TestCase):
                 fetch_page('https://publisher.example/contact', same_origin_only=True)
         self.assertEqual(dns.call_count, 1)
         connection.close.assert_called_once()
+
+    def test_page_fetch_does_not_attribute_another_site_to_the_original_url(self):
+        response, connection = MagicMock(), MagicMock()
+        response.status = 302
+        response.getheader.return_value = 'https://different.example/casino'
+        connection.getresponse.return_value = response
+        with patch('src.fetcher._public_addresses', return_value=['8.8.8.8']) as dns, patch('src.fetcher._PinnedHTTPS', return_value=connection):
+            with self.assertRaisesRegex(FetchError, 'Cross-host redirect requires manual review'):
+                fetch_page('https://publisher.example/casino')
+        self.assertEqual(dns.call_count, 1)
+
+    def test_page_fetch_allows_www_canonical_redirect(self):
+        first, second = MagicMock(), MagicMock()
+        first_response = first.getresponse.return_value
+        first_response.status = 301
+        first_response.getheader.return_value = 'https://www.example.com/casino'
+        second_response = second.getresponse.return_value
+        second_response.status = 200
+        second_response.getheader.side_effect = lambda name, default=None: {'Content-Type': 'text/html'}.get(name, default)
+        second_response.read.return_value = b'<p>page</p>'
+        second_response.headers.get_content_charset.return_value = 'utf-8'
+        with patch('src.fetcher._public_addresses', return_value=['8.8.8.8']), patch('src.fetcher._PinnedHTTPS', side_effect=[first, second]):
+            self.assertEqual(fetch_page('https://example.com/casino'), (b'<p>page</p>', 'utf-8'))
 
 if __name__ == "__main__": unittest.main()

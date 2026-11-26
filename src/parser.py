@@ -124,7 +124,10 @@ class _TextExtractor(HTMLParser):
             return
         self.parts.append(" " + target + " ")
 
-def extract_text(content: bytes, charset: str = "utf-8", *, base_url: str | None = None) -> str:
+def extract_text(content: bytes, charset: str = "utf-8", *, base_url: str | None = None,
+                 min_text_chars: int = 80) -> str:
+    if min_text_chars < 1:
+        raise ValueError("Minimum text length must be positive")
     if len(content) > MAX_HTML_BYTES:
         raise PageError("Page exceeds size limit")
     try:
@@ -139,7 +142,7 @@ def extract_text(content: bytes, charset: str = "utf-8", *, base_url: str | None
         raise PageError("Could not parse page") from exc
     text = re.sub(r"\s+", " ", " ".join(parser.parts)).strip()
     _check_interstitial(text, " ".join(parser.title_parts))
-    if len(text) < 80:
+    if len(text) < min_text_chars:
         raise PageError("Insufficient readable content; manual review needed")
     if len(text) > MAX_TEXT_CHARS:
         return text[:30_000] + " [...] " + text[-9_993:]

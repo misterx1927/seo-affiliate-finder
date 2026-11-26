@@ -12,6 +12,18 @@ class ContactDiscoveryTests(unittest.TestCase):
         self.assertEqual(contact_pages(html, 'utf-8', 'https://site.example/reviews'), ['https://site.example/contact/'])
         self.assertEqual(public_email_candidates('contact@site.example contact@site.example noreply@site.example'), ['contact@site.example'])
 
+    def test_contact_label_finds_nonobvious_path_but_not_external_link(self):
+        html = (b'<a href="/about"><span>Get in touch</span></a>'
+                b'<a href="https://other.example/about">Contact us</a>'
+                b'<a href="/casino">Casino review</a>')
+        self.assertEqual(contact_pages(html, 'utf-8', 'https://site.example/reviews'),
+                         ['https://site.example/about'])
+
+    def test_markdown_label_finds_nonobvious_contact_path(self):
+        html = b'<p>[Advertise with us](/about-us)</p>'
+        self.assertEqual(contact_pages(html, 'utf-8', 'https://site.example/reviews'),
+                         ['https://site.example/about-us'])
+
     def test_other_company_and_ambiguous_contacts_are_not_guessed(self):
         self.assertIsNone(choose_contact(['support@casino.example'], 'https://publisher.example/contact'))
         self.assertIsNone(choose_contact(['team@publisher.example', 'help@publisher.example'], 'https://publisher.example/contact'))

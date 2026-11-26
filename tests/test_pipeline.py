@@ -12,6 +12,17 @@ class ParserTests(unittest.TestCase):
     def test_long_page_keeps_footer_contact(self):
         html = ("<p>" + "Useful content " * 5000 + "</p><footer>Contact footer@example.com</footer>").encode()
         self.assertIn("footer@example.com", extract_text(html))
+    def test_visible_internal_contact_link_is_available_to_analyzer(self):
+        html = ("<article>" + "Independent casino reviews. " * 5 + "</article>"
+                "<footer><a href='/contact'>Contact us</a> "
+                "<a href='https://elsewhere.example/contact'>Contact external</a> "
+                "<a href='/casino'>Casino review</a> "
+                "<a hidden href='/secret'>Contact secret</a></footer>").encode()
+        text = extract_text(html, base_url='https://publisher.example/reviews')
+        self.assertIn('https://publisher.example/contact', text)
+        self.assertNotIn('https://elsewhere.example/contact', text)
+        self.assertNotIn('https://publisher.example/casino', text)
+        self.assertNotIn('https://publisher.example/secret', text)
     def test_short_and_large_pages_need_review(self):
         with self.assertRaises(PageError): extract_text(b"<p>Blocked</p>")
         with self.assertRaises(PageError): extract_text(b"x" * (MAX_HTML_BYTES + 1))

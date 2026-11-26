@@ -36,6 +36,8 @@ next(item for item in app.radio if item.label == "Источник данных"
 assert not app.exception, [item.value for item in app.exception]
 metrics = {item.label: item.value for item in app.metric}
 assert metrics["ЗАПРОСЫ"] == "10" and metrics["ПОЗИЦИИ"] == "100" and metrics["СТРАНИЦЫ"] == "69", metrics
+assert not app.progress
+assert any("Дополнительная проверка: 27 · Нет данных: 6 · Неоднозначно: 7" in item.value for item in app.caption)
 assert any("Google Web" in item.value for item in app.caption)
 next(item for item in app.multiselect if item.label == "Показать").set_value(["Возможные площадки"]).run(timeout=30)
 app.text_input[0].input("casinoslists.com").run(timeout=30)
@@ -58,6 +60,6 @@ if app.dataframe:
 next(item for item in app.radio if item.label == "Источник данных").set_value("Реальные результаты").run(timeout=30)
 assert not app.exception, [item.value for item in app.exception]
 assert not any("Обновить демо" in button.label for button in app.button)
-assert len(app.progress) == 1
+assert not app.progress
 print("UI smoke test passed: Russian demo, filters, saved snapshot and live mode.")
 

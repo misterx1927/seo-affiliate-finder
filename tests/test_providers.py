@@ -69,7 +69,7 @@ class ProviderTests(unittest.TestCase):
         self.assertIn('regulators', instruction)
         self.assertIn('context', instruction)
         self.assertIn('PlayNow', result.brands)
-        self.assertTrue(client.cache_version.startswith('openai-page-analysis-v8:'))
+        self.assertTrue(client.cache_version.startswith('openai-page-analysis-v9:'))
 
     def test_prompt_prevents_confusing_reviewed_casino_support_with_publisher_contact(self):
         response = {"choices": [{"message": {"content": json.dumps({"relevance": "yes", "brands": [], "contact": None, "evidence": "Independent reviews"})}}]}

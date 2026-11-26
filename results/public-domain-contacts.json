@@ -1,4 +1,8 @@
 {
+  "slotsmate.com": {"email": "marketing@slotsmate.com", "source": "https://www.slotsmate.com/about-us", "contact_page": "https://www.slotsmate.com/contact"},
+  "covers.com": {"email": "advertising@coversmedia.com", "source": "https://www.covers.com/contact", "contact_page": "https://www.covers.com/contact"},
+  "rotowire.com": {"email": "shannon@rotowire.com", "source": "https://assets.rotowire.com/documents/advertise/content-syndication.pdf", "contact_page": "https://assets.rotowire.com/documents/advertise/content-syndication.pdf"},
+  "nodepositbonus.cc": {"email": "contact@nodepositbonus.cc", "source": "https://www.nodepositbonus.cc/privacy-policy/", "contact_page": "https://www.nodepositbonus.cc/support/contact-us/"},
   "casinoslists.com": {"email": "marketing@casinoslists.com", "source": "https://www.casinoslists.com/contact", "contact_page": "https://www.casinoslists.com/contact"},
   "casino.guru": {"email": "community@casino.guru", "source": "https://casino.guru/forum/casinos/casino-review-request", "contact_page": "https://casino.guru/contact-us"},
   "casino.org": {"email": "casino@casino.org", "source": "https://www.casino.org/get-listed/", "contact_page": "https://www.casino.org/get-listed/"},

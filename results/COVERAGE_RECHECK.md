@@ -19,6 +19,14 @@
   запросов о партнёрстве. Это публичный контакт отдела; возможность и условия
   размещения конкретного бренда не подтверждены.
 
+## SlotsMate
+
+- Исходный URL: https://www.slotsmate.com/ca/100-free-spins
+- Индекс точного URL содержит сравнение бонусов с раскрытием партнёрских ссылок. Выборочные бренды: Frogbet Casino, LuckyCapone Casino, Gambloria Casino, Fugu Casino и Tycoon Casino. Прямое открытие вернуло HTTP 400, дата индексирования неизвестна; список брендов неполный.
+- Деловой контакт marketing@slotsmate.com указан на https://www.slotsmate.com/about-us. Условия размещения необходимо уточнять.
+
+Дополнительные контакты сайтов: advertising@coversmedia.com ([Covers](https://www.covers.com/contact), продажи и маркетинг, сотрудничество в спортивных ставках); shannon@rotowire.com ([RotoWire](https://assets.rotowire.com/documents/advertise/content-syndication.pdf), директор по продажам, синдикация спортивного контента); contact@nodepositbonus.cc ([NoDepositBonus](https://www.nodepositbonus.cc/privacy-policy/), общий адрес, назначение для партнёрств не подтверждено). Это контакты сайтов, а не обязательно самих страниц выдачи. Условия и актуальность необходимо проверять.
+
 ## NorthStar Bets
 
 - Исходный URL: https://www.northstarbets.ca/casino

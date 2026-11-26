@@ -1,0 +1,210 @@
+{
+  "https://ca.888casino.com/": {
+    "relevance": "no",
+    "brands": [
+      "888casino"
+    ],
+    "note": "Сайт предоставляет собственные игры казино. Проверен доступный индексированный вариант страницы 26.11.2026."
+  },
+  "https://www.betvictor.com/en-ca/casino": {
+    "relevance": "no",
+    "brands": [
+      "BetVictor"
+    ],
+    "note": "Сайт предлагает собственные игры казино. Проверен доступный индексированный вариант страницы 26.11.2026."
+  },
+  "https://www.playojo.com/ca/": {
+    "relevance": "no",
+    "brands": [
+      "PlayOJO"
+    ],
+    "note": "Сайт предоставляет игры собственного казино. Проверен доступный индексированный вариант страницы 26.11.2026."
+  },
+  "https://ca.trustpilot.com/categories/casino": {
+    "relevance": "needs_review",
+    "brands": [
+      "Betty",
+      "PickWin",
+      "Jackpotcity",
+      "Yukon Gold Casino",
+      "Zodiac Casino"
+    ],
+    "note": "Каталог пользовательских отзывов; пригодность для размещения не установлена. Перечень брендов неполный. Проверен индексированный вариант страницы 26.11.2026."
+  },
+  "https://www.alc.ca/content/alc/en/play-online/casino.html": {
+    "relevance": "no",
+    "brands": [
+      "Atlantic Lottery"
+    ],
+    "note": "Страница предлагает игры собственного онлайн-казино. Проверен доступный индексированный вариант страницы 26.11.2026."
+  },
+  "https://www.casino.ca/": {
+    "relevance": "yes",
+    "brands": [
+      "Zodiac Casino",
+      "Yukon Gold Casino",
+      "Jackpot City",
+      "Spin Casino",
+      "Lucky Ones"
+    ],
+    "contact": "contact@casino.ca",
+    "contact_page": "https://www.casino.ca/contact/",
+    "note": "Обзорник казино. Страница контактов называет форму и email для общих и деловых запросов. Бренды указаны частично. Проверен индексированный вариант 26.11.2026; подтверждения размещения нет."
+  },
+  "https://www.betmgm.ca/en/casino": {
+    "relevance": "no",
+    "brands": [
+      "BetMGM"
+    ],
+    "note": "Сайт предлагает игры собственного казино. Проверен доступный индексированный вариант страницы 26.11.2026; валюта отображения может зависеть от региона."
+  },
+  "https://casino.guru/canada/new": {
+    "relevance": "yes",
+    "brands": [
+      "Rolly Casino",
+      "Winoly Casino"
+    ],
+    "note": "Рейтинг новых казино; на странице контактов есть форма добавления казино. Ручная проверка индексированной версии 26.11.2026; список брендов неполный, доступность размещения не подтверждена. Это не автоматический AI-анализ.",
+    "contact_page": "https://casino.guru/contact-us"
+  },
+  "https://casino.guru/canada/bonus/free-spins": {
+    "relevance": "yes",
+    "brands": [
+      "Lemon Casino",
+      "LuckyWins Casino",
+      "Legiano Casino",
+      "Vegasino Casino",
+      "Spinsy Casino"
+    ],
+    "note": "Каталог предложений и обзоров; перечисленные бренды также указаны в навигации. На странице контактов есть форма добавления казино. Ручная проверка индексированной версии 26.11.2026; список брендов неполный, доступность размещения не подтверждена. Это не автоматический AI-анализ.",
+    "contact_page": "https://casino.guru/contact-us"
+  },
+  "https://casino.guru/canada/bonus/no-deposit": {
+    "relevance": "yes",
+    "brands": [
+      "Brango Casino"
+    ],
+    "note": "Каталог бонусов; указан обзор Brango Casino. На странице контактов есть форма добавления казино. Ручная проверка индексированной версии 26.11.2026; список брендов неполный, доступность размещения не подтверждена. Это не автоматический AI-анализ.",
+    "contact_page": "https://casino.guru/contact-us"
+  },
+  "https://www.casino.ca/fast-withdrawals/": {
+    "relevance": "yes",
+    "brands": [
+      "RetroBet Casino",
+      "The Clubhouse Casino",
+      "Betya",
+      "JustCasino",
+      "Winberry"
+    ],
+    "note": "Сравнение казино по скорости выплат; контактная страница сайта содержит форму и email для общих и деловых запросов. Ручная проверка индексированной версии 26.11.2026; список брендов неполный, доступность размещения не подтверждена. Это не автоматический AI-анализ.",
+    "contact_page": "https://www.casino.ca/contact/"
+  },
+  "https://rg.org/en-ca/casinos": {
+    "relevance": "yes",
+    "brands": [
+      "1xBet",
+      "Tonybet",
+      "Stake",
+      "SlotRave",
+      "Granawin",
+      "22Bet",
+      "SafeCasino",
+      "20BET",
+      "888casino",
+      "Big Boost Casino"
+    ],
+    "note": "Рейтинг и обзоры казино; на странице контактов указан раздел для партнёрских предложений. Ручная проверка индексированной версии 26.11.2026; список брендов неполный, доступность размещения не подтверждена. Это не автоматический AI-анализ.",
+    "contact_page": "https://rg.org/en-ca/contacts"
+  },
+  "https://rg.org/en-ca/casinos/provinces/ontario": {
+    "relevance": "yes",
+    "brands": [
+      "Tonybet",
+      "BET99",
+      "BetVictor",
+      "Sports Interaction",
+      "LeoVegas"
+    ],
+    "note": "Рейтинг и обзоры казино Онтарио; на странице контактов указан раздел для партнёрских предложений. Ручная проверка индексированной версии 26.11.2026; список брендов неполный, доступность размещения не подтверждена. Это не автоматический AI-анализ.",
+    "contact_page": "https://rg.org/en-ca/contacts"
+  },
+  "https://sigma.world/ca/play/payments/interac/": {
+    "relevance": "yes",
+    "brands": [
+      "Gamblezen Casino",
+      "Fresh Casino",
+      "Starda Casino",
+      "Lucky Dreams Casino"
+    ],
+    "note": "Сравнение казино с Interac; контактная страница найдена, назначение для размещения не подтверждено. Ручная проверка индексированной версии 26.11.2026; список брендов неполный, доступность размещения не подтверждена. Это не автоматический AI-анализ.",
+    "contact_page": "https://sigma.world/contact/"
+  },
+  "https://www.pokertube.com/ca/article/interac-casinos": {
+    "relevance": "yes",
+    "brands": [
+      "Jackpot City",
+      "Spin Casino",
+      "PlayOJO",
+      "MadCasino",
+      "TenoBet"
+    ],
+    "note": "Статья с рейтингом Interac-казино; контакт редакции по индексированной странице не установлен. Ручная проверка индексированной версии 26.11.2026; список брендов неполный, доступность размещения не подтверждена. Это не автоматический AI-анализ."
+  },
+  "https://businessexaminer.ca/victoria-articles/item/interac-online-casinos/": {
+    "relevance": "yes",
+    "brands": [
+      "Jackpot City",
+      "PlayOJO",
+      "Spin Casino",
+      "Kingdom Casino"
+    ],
+    "note": "Издание опубликовало партнёрский рейтинг; на контактной странице есть форма по вопросам рекламы. Ручная проверка индексированной версии 26.11.2026; список брендов неполный, доступность размещения не подтверждена. Это не автоматический AI-анализ.",
+    "contact_page": "https://businessexaminer.ca/contact-us/"
+  },
+  "https://chipy.com/ca/bonus-blog/free-spins-no-deposit": {
+    "relevance": "yes",
+    "brands": [
+      "Wagerwhale Casino",
+      "BlazeBet Casino",
+      "Ripper Casino",
+      "BetBeast"
+    ],
+    "note": "Список бонусов разных казино; контакт редакции по индексированной странице не установлен. Ручная проверка индексированной версии 26.11.2026; список брендов неполный, доступность размещения не подтверждена. Это не автоматический AI-анализ."
+  },
+  "https://www.squawka.com/ca/online-casinos/fast-withdrawal/": {
+    "relevance": "yes",
+    "brands": [
+      "Boho Casino",
+      "Caesars Palace",
+      "PlayOJO",
+      "PowerPlay",
+      "BetRivers",
+      "BetVictor",
+      "bet365 Casino",
+      "Bet99",
+      "TonyBet"
+    ],
+    "note": "Страница сравнивает казино и скорость выплат; контакт редакции по индексированной странице не установлен. Ручная проверка индексированной версии 26.11.2026; список брендов неполный, доступность размещения не подтверждена. Это не автоматический AI-анализ."
+  },
+  "https://casino.draftkings.com/on-ca-online-casino": {
+    "relevance": "no",
+    "brands": [
+      "DraftKings"
+    ],
+    "note": "Собственное онлайн-казино DraftKings в Онтарио. Ручная проверка индексированной версии 26.11.2026; это не автоматический AI-анализ."
+  },
+  "https://on.spingenie.ca/": {
+    "relevance": "no",
+    "brands": [
+      "Spin Genie"
+    ],
+    "note": "Собственное онлайн-казино Spin Genie в Онтарио. Ручная проверка индексированной версии 26.11.2026; это не автоматический AI-анализ."
+  },
+  "https://www.leovegas.com/en-ca-on": {
+    "relevance": "no",
+    "brands": [
+      "LeoVegas"
+    ],
+    "note": "Собственное онлайн-казино LeoVegas в Онтарио. Ручная проверка индексированной версии 26.11.2026; это не автоматический AI-анализ."
+  }
+}

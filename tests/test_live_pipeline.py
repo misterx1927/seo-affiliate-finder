@@ -119,6 +119,36 @@ class LivePipelineTests(unittest.TestCase):
         self.assertEqual(resumed["status"], "partial")
         self.assertEqual((serp.calls, ai.calls), (1, 1))
 
+    def test_resume_uses_own_search_snapshot_after_later_run(self):
+        class CountingSerp(FakeSerp):
+            def __init__(self): self.calls = []
+            def search(self, keyword):
+                self.calls.append(keyword)
+                return super().search(keyword)
+        class ChangedSerp(FakeSerp):
+            def search(self, keyword):
+                return [OrganicResult(i, f"https://new{i}.example/") for i in range(1, 11)]
+
+        serp = CountingSerp()
+        first = run_live(self.db, '2026-11-24', ['ok', 'bad'], serp, FakeAI(), fake_fetch, self.path, 0)
+        run_live(self.db, '2026-11-24', ['ok'], ChangedSerp(), FakeAI(), fake_fetch, self.path, 0)
+        resumed = run_live(self.db, '2026-11-24', ['ok', 'bad'], serp, FakeAI(), fake_fetch,
+                           self.path, 1, resume_id=first['run_id'])
+        self.assertEqual(serp.calls, ['ok', 'bad'])
+        self.assertEqual(resumed['keywords_complete'], 1)
+        self.assertEqual(self.db.execute('SELECT url FROM run_pages WHERE run_id=?', (first['run_id'],)).fetchone()[0],
+                         'https://example1.com/')
+        self.assertFalse(any('checkpoint data no longer available' in e for e in resumed['errors']))
+
+    def test_resume_old_run_uses_remaining_legacy_observations(self):
+        first = run_live(self.db, '2026-11-24', ['ok', 'bad'], FakeSerp(), FakeAI(), fake_fetch, self.path, 0)
+        self.db.execute('DELETE FROM run_observations WHERE run_id=?', (first['run_id'],))
+        self.db.commit()
+        resumed = run_live(self.db, '2026-11-24', ['ok', 'bad'], FakeSerp(), FakeAI(), fake_fetch,
+                           self.path, 0, resume_id=first['run_id'])
+        self.assertEqual(resumed['keywords_complete'], 1)
+        self.assertFalse(any('checkpoint data no longer available' in e for e in resumed['errors']))
+
     def test_failed_analysis_records_usage_without_retry(self):
         class FailedAI:
             model = "test-model"

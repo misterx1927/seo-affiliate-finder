@@ -79,6 +79,29 @@ class AnalysisTests(unittest.TestCase):
         self.assertEqual(result.brands, ("21 Casino", "21 Casino Deluxe", "2 1 Casino"))
 
 class ExportTests(unittest.TestCase):
+    def test_same_day_runs_export_their_own_positions_and_legacy_fallback(self):
+        conn = connect(':memory:')
+        self.addCleanup(conn.close)
+        with conn:
+            for run_id in (1, 2):
+                conn.execute("INSERT INTO runs(id,started_at,mode,status) VALUES (?, 'now', 'live', 'complete')", (run_id,))
+                conn.execute('INSERT INTO run_analysis_tracking(run_id) VALUES (?)', (run_id,))
+                replace_keyword_results(conn, '2026-11-27', 'q', [{'position': 1, 'url': f'https://example{run_id}.com'}], run_id)
+            conn.execute("INSERT INTO run_page_analysis(run_id,url,status,relevance) VALUES (1,'https://example1.com/','complete','yes')")
+            # A legacy keyword from the same run has no archived rows.
+            conn.execute("INSERT INTO observations VALUES ('2026-11-27','legacy',1,'https://legacy.example/','legacy.example',1)")
+        path = Path('data/test-same-day-export.csv')
+        self.addCleanup(lambda: path.unlink(missing_ok=True))
+        self.assertEqual(export_observations(conn, path, run_id=1), 2)
+        with path.open(encoding='utf-8-sig', newline='') as stream:
+            rows = {row['keyword']: row for row in csv.DictReader(stream)}
+        self.assertEqual((rows['q']['domain'], rows['q']['relevance']), ('example1.com', 'yes'))
+        self.assertEqual(rows['legacy']['domain'], 'legacy.example')
+        self.assertEqual(export_observations(conn, path), 2)
+        with path.open(encoding='utf-8-sig', newline='') as stream:
+            current = {row['keyword']: row for row in csv.DictReader(stream)}
+        self.assertEqual(current['q']['domain'], 'example2.com')
+
     def test_tracked_run_exports_its_own_analysis_without_borrowing_current_page(self):
         conn = connect(':memory:')
         self.addCleanup(conn.close)

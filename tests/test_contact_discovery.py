@@ -16,6 +16,11 @@ class ContactDiscoveryTests(unittest.TestCase):
         self.assertIsNone(email)
         self.assertIn('challenge', error)
 
+    @patch('discover_contacts.fetch_page')
+    def test_percent_encoded_mailto_is_observed_without_taking_subject_as_address(self, fetch):
+        fetch.return_value = (b'<h1>Contact</h1><a href="mailto:press%40publisher.com?subject=old%40publisher.com">Email us</a>', 'utf-8')
+        self.assertEqual(inspect_page('https://publisher.com/contact'), ('press@publisher.com', None))
+
     def test_follows_only_same_origin_and_limited_links(self):
         html = b'<a href="/contact-us">Contact</a><a href="https://evil.example/contact">External</a><a href="/advertising">Advertising</a><a href="http://site.example/contact">Downgrade</a>'
         self.assertEqual(contact_pages(html, 'utf-8', 'https://site.example/reviews'), ['https://site.example/contact-us', 'https://site.example/advertising'])
@@ -36,6 +41,15 @@ class ContactDiscoveryTests(unittest.TestCase):
         html = b'<p>[Advertise with us](/about-us)</p>'
         self.assertEqual(contact_pages(html, 'utf-8', 'https://site.example/reviews'),
                          ['https://site.example/about-us'])
+
+    def test_hidden_links_and_script_markdown_are_not_contact_pages(self):
+        html = (b'<script>let x="[Contact](/obsolete-contact)"</script>'
+                b'<!-- [Contact](/comment-contact) -->'
+                b'<div hidden><a href="/hidden-contact">Contact</a></div>'
+                b'<div style="display: none"><p>[Contact](/invisible-contact)</p></div>'
+                b'<p>[Contact](/real-contact)</p>')
+        self.assertEqual(contact_pages(html, 'utf-8', 'https://site.example/reviews'),
+                         ['https://site.example/real-contact'])
 
     def test_other_company_and_ambiguous_contacts_are_not_guessed(self):
         self.assertIsNone(choose_contact(['support@casino.example'], 'https://publisher.example/contact'))
@@ -70,6 +84,14 @@ class ContactDiscoveryTests(unittest.TestCase):
         fetch.return_value = page, 'utf-8'
         self.assertEqual(inspect_page('https://publisher.com/contact'), (address, None))
         self.assertEqual(inspect_page('https://another.com/contact'), (None, None))
+
+    def test_cloudflare_hidden_addresses_do_not_count_as_public_contacts(self):
+        key = 0x35
+        encode = lambda address: bytes([key] + [key ^ b for b in address.encode('ascii')]).hex()
+        page = (f'<div hidden><span data-cfemail="{encode("old@publisher.com")}"></span></div>'
+                f'<template><span data-cfemail="{encode("template@publisher.com")}"></span></template>'
+                f'<span data-cfemail="{encode("press@publisher.com")}">[email protected]</span>').encode()
+        self.assertEqual(cloudflare_email_candidates(page, 'utf-8'), ['press@publisher.com'])
 
     def test_uncertain_cached_pages_are_included_but_rejected_pages_excluded(self):
         conn = sqlite3.connect(':memory:')

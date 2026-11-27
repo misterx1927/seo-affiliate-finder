@@ -43,6 +43,22 @@ class LivePipelineTests(unittest.TestCase):
         run_live(self.db, '2026-11-24', ['ok'], FakeSerp(), ai, fake_fetch, self.path, 1)
         self.assertEqual(ai.calls, 2)
 
+    def test_each_run_preserves_its_analysis_even_if_a_later_fetch_fails(self):
+        ai = FakeAI()
+        first = run_live(self.db, '2026-11-24', ['ok'], FakeSerp(), ai, fake_fetch, self.path, 1)
+        cached = run_live(self.db, '2026-11-24', ['ok'], FakeSerp(), ai, fake_fetch, self.path, 1)
+        def failed_fetch(url):
+            raise OSError('site unavailable')
+        later = run_live(self.db, '2026-11-25', ['ok'], FakeSerp(), ai, failed_fetch, self.path, 1)
+        records = self.db.execute('SELECT run_id,status,relevance,error FROM run_page_analysis WHERE url=? ORDER BY run_id', ('https://example1.com/',)).fetchall()
+        self.assertEqual([tuple(row[:3]) for row in records], [
+            (first['run_id'], 'complete', 'yes'),
+            (cached['run_id'], 'complete', 'yes'),
+            (later['run_id'], 'needs_review', None),
+        ])
+        self.assertIn('site unavailable', records[-1]['error'])
+        self.assertEqual(ai.calls, 1)
+
     def test_search_diagnostics_are_saved_with_keyword(self):
         class DiagnosticSerp(FakeSerp):
             last_diagnostics = {"items_by_type": {"organic": 10, "people_also_ask": 1}, "organic_ranks": list(range(1, 11)), "from_web_ranks": [1, 3]}

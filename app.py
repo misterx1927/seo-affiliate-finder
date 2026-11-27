@@ -153,7 +153,7 @@ with st.sidebar:
     st.caption("Поиск площадок для размещения казино-брендов")
     st.divider()
     st.markdown("**Источник данных**")
-    source = st.radio("Источник данных", ["Демо", "Реальные результаты", "Сохранённый прогон"], index=2, label_visibility="collapsed")
+    source = st.radio("Источник данных", ["Демо", "Реальные результаты", "Сохранённый прогон"], index=1 if live_results_exist() else 2, label_visibility="collapsed")
     if source == "Демо":
         st.caption("Вымышленные данные, без запросов к API.")
     else:

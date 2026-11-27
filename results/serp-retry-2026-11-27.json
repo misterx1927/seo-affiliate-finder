@@ -497,5 +497,166 @@
         }
       ]
     }
-  ]
+  ],
+  "dataforseo_ungrouped_retrieval_test": {
+    "settings": "google.ca, Canada, English, mobile Android, depth 20, resolve_goto_urls=true, resolve_poisoned_results=true, group_organic_results=false",
+    "results": [
+      {
+        "query": "interac casino",
+        "finished_at_utc": "2026-11-27T18:36:59Z",
+        "provider_reported_cost_usd": 0.006,
+        "organic_items_returned": 20,
+        "results": [
+          {
+            "rank": 1,
+            "url": "https://www.livescore.com/en-ca/online-casinos/interac/",
+            "checks": [
+              "from_web"
+            ]
+          },
+          {
+            "rank": 2,
+            "url": "https://www.casino.org/canada/payment/interac/",
+            "checks": [
+              "from_web"
+            ]
+          },
+          {
+            "rank": 3,
+            "url": "https://globalnews.ca/content/11754220/best-interac-casinos-canada-2026-fast-deposits-secure-withdrawals/",
+            "checks": [
+              "from_web"
+            ]
+          },
+          {
+            "rank": 4,
+            "url": "https://sigma.world/ca/play/payments/interac/",
+            "checks": [
+              "from_web"
+            ]
+          },
+          {
+            "rank": 5,
+            "url": "https://businessexaminer.ca/victoria-articles/item/interac-online-casinos/",
+            "checks": [
+              "from_web"
+            ]
+          },
+          {
+            "rank": 6,
+            "url": "https://www.casino.ca/payments/interac/",
+            "checks": [
+              "from_web"
+            ]
+          },
+          {
+            "rank": 7,
+            "url": "https://casino.guru/canada/payments/interac",
+            "checks": [
+              "from_web"
+            ]
+          },
+          {
+            "rank": 8,
+            "url": "https://www.pokertube.com/ca/article/interac-casinos",
+            "checks": [
+              "from_web"
+            ]
+          },
+          {
+            "rank": 9,
+            "url": "https://www.casinos.com/ca/interac",
+            "checks": [
+              "from_web"
+            ]
+          },
+          {
+            "rank": 10,
+            "url": "https://www.gambling.com/ca/online-casinos/interac",
+            "checks": [
+              "from_web"
+            ]
+          }
+        ]
+      },
+      {
+        "query": "real money online casino canada",
+        "finished_at_utc": "2026-11-27T18:38:10Z",
+        "provider_reported_cost_usd": 0.004,
+        "organic_items_returned": 10,
+        "results": [
+          {
+            "rank": 1,
+            "url": "https://www.powerplay.com/casino/",
+            "checks": [
+              "from_web"
+            ]
+          },
+          {
+            "rank": 2,
+            "url": "https://www.playojo.com/ca/",
+            "checks": [
+              "from_web"
+            ]
+          },
+          {
+            "rank": 3,
+            "url": "https://www.betmgm.ca/en/casino",
+            "checks": [
+              "from_web"
+            ]
+          },
+          {
+            "rank": 4,
+            "url": "https://www.betsafe.com/ca/casino",
+            "checks": [
+              "from_web"
+            ]
+          },
+          {
+            "rank": 5,
+            "url": "https://rg.org/en-ca/casinos/real-money-casinos",
+            "checks": [
+              "from_web"
+            ]
+          },
+          {
+            "rank": 6,
+            "url": "https://www.partycasino.com/en-ca/games",
+            "checks": [
+              "from_web"
+            ]
+          },
+          {
+            "rank": 7,
+            "url": "https://chipy.com/casinos/country/canada",
+            "checks": [
+              "from_web"
+            ]
+          },
+          {
+            "rank": 8,
+            "url": "https://nationalpost.com/sponsored/real-money-online-casinos-canada/",
+            "checks": [
+              "from_web"
+            ]
+          },
+          {
+            "rank": 9,
+            "url": "https://www.partycasino.com/en-ca/games/instantcasino/slots",
+            "checks": [
+              "from_web"
+            ]
+          },
+          {
+            "rank": 10,
+            "url": "https://www.youtube.com/watch?v=dJmuklnWJZ0",
+            "checks": [
+              "from_web"
+            ]
+          }
+        ]
+      }
+    ]
+  }
 }

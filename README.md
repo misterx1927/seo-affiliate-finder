@@ -7,6 +7,7 @@ Find potential casino affiliate placements in Google Canada’s English mobile r
 - [Demonstration in English](affiliate-finder-demo-en.mp4) and [in Russian](affiliate-finder-demo.mp4). On GitHub, select **View raw** to play or download.
 - [Recorded results](results/run-7-ai-updated.csv) for the included dashboard view.
 - [Latest run summary, 27 November](results/RUN_2026-11-27.md) and [20-page sample review](results/INDEPENDENT_SAMPLE_20.md).
+- [Fresh SERP diagnostics](results/SERP_RETRY_2026-11-27.md) and [AI checks on cached pages](results/AI_CACHE_DIAGNOSTIC_2026-11-27.md), kept separate from the historical results.
 
 ## Quick start (Windows, Python 3.11+)
 

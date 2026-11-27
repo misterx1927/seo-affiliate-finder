@@ -14,6 +14,8 @@ py -m venv .venv
 
 Open the displayed URL. The dashboard defaults to **Сохранённый прогон**, showing the included [recorded results](results/run-7-ai-updated.csv) without API keys or paid calls. Alternatively, select **Демо** and click **Обновить демо** for fictional data, or **Реальные результаты** to view locally collected live results. The dashboard includes filters, CSV/Excel exports and pages needing review. This setup was tested on Windows with Python 3.13 in an isolated copy without credentials or databases.
 
+The dashboard groups the filtered results by domain and displays the best position and its page and query. Other matching pages and positions remain available in the details panel. Dashboard downloads contain this grouped view, not the complete search history. The recorded CSV remains ungrouped.
+
 ## Collect real data
 
 Create a local configuration with `Copy-Item .env.example .env`, then fill in your DataForSEO login/password and OpenAI API key; choose a model available to your account. Do not share `.env`. Both services charge separately. Check current pricing and set provider spending controls.

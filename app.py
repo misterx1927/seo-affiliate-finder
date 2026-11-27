@@ -114,6 +114,11 @@ def is_video_result(url):
     return host == "youtu.be" or host == "youtube.com" or host.endswith(".youtube.com")
 
 
+def excluded_from_prospects(url):
+    host = (urlsplit(str(url)).hostname or "").lower().rstrip(".")
+    return host == "trustpilot.com" or host.endswith(".trustpilot.com") or is_video_result(str(url))
+
+
 def assessment_color(value):
     colors = {
         "Возможно подходит": "color: #b8f27a; background-color: #243d27; font-weight: 600",
@@ -235,7 +240,7 @@ with connect("data/demo.db" if is_demo else "data/live.db") as conn:
             current["Relevance"] = current["Relevance"].fillna("needs_review")
             latest = current["Date"].max()
 
-    st.markdown('''<div class="eyebrow">✳ &nbsp; GOOGLE · КАНАДА · МОБИЛЬНЫЕ УСТРОЙСТВА</div><div class="hero-title">Поиск&nbsp;<em>площадок</em></div><p class="hero-copy">Позиции, бренды и контакты для размещения казино-брендов.</p>''', unsafe_allow_html=True)
+    st.markdown('''<div class="eyebrow">✳ &nbsp; GOOGLE · КАНАДА · МОБИЛЬНЫЕ УСТРОЙСТВА</div><div class="hero-title">Поиск <em>площадок</em></div><p class="hero-copy">Позиции, бренды и контакты для размещения казино-брендов.</p>''', unsafe_allow_html=True)
     if is_demo:
         st.info("Демо: ниже вымышленные примеры. Выберите «Реальные результаты» в боковом меню, чтобы увидеть сохранённый поиск.")
         if st.button("Обновить демо", type="primary"):
@@ -250,19 +255,20 @@ a, b, c, d = st.columns(4)
 a.metric("ЗАПРОСЫ", str(current["Keyword"].nunique()))
 b.metric("ПОЗИЦИИ", str(len(current)))
 c.metric("СТРАНИЦЫ", str(current["URL"].nunique()))
-d.metric("ВОЗМОЖНЫЕ ПЛОЩАДКИ", str(current.loc[(current["Relevance"] == "yes") & (current["Status"].isin(["complete", "supplemental"])), "URL"].nunique()), help="Предварительная оценка AI или дополнительная проверка. Пригодность площадки нужно подтвердить.")
+prospects = current.loc[(current["Relevance"] == "yes") & (current["Status"].isin(["complete", "supplemental"])) & ~current["URL"].map(excluded_from_prospects).astype(bool)]
+prospect_domains = prospects["Domain"].fillna("").astype(str).str.lower().str.removeprefix("www.")
+d.metric("ВОЗМОЖНЫЕ ПЛОЩАДКИ", str(prospect_domains.nunique()), help="Предварительная оценка AI или дополнительная проверка. Пригодность площадки нужно подтвердить.")
 
 if not is_demo and "SERP source" in current.columns:
     restored = int((current["SERP source"] == "restored_from_google_web").sum())
     st.caption(f"{restored} из {len(current)} позиций восстановлены через Google Web и могут отличаться от мобильной выдачи. Дополнительная проверка не является AI-анализом, контакты требуют подтверждения.")
 
 st.markdown('''<div class="section-top"><div><div class="section-label">Результаты поиска</div></div></div>''', unsafe_allow_html=True)
-show_history = st.checkbox("Показать предыдущие даты", value=False, help="Добавить результаты других дат для сравнения.") if frame["Date"].nunique() > 1 else False
-explorer = frame if show_history or latest is None else frame[frame["Date"] == latest]
+show_history = False
+explorer = frame if latest is None else frame[frame["Date"] == latest]
 # Trustpilot is a review platform, not a placement prospect. Keep the original
 # search result in the stored snapshot, but exclude it from the prospect list.
-explorer = explorer.loc[~explorer["URL"].map(lambda url: (urlsplit(str(url)).hostname or "").lower().rstrip(".") in {"trustpilot.com", "www.trustpilot.com", "ca.trustpilot.com"} or (urlsplit(str(url)).hostname or "").lower().rstrip(".").endswith(".trustpilot.com")).astype(bool)]
-explorer = explorer.loc[~explorer["URL"].map(is_video_result).astype(bool)]
+explorer = explorer.loc[~explorer["URL"].map(excluded_from_prospects).astype(bool)]
 categories = ["Возможные площадки", "Нужна проверка", "Не подходят", "Нет анализа"]
 selected_categories = st.multiselect("Показать", categories, default=["Возможные площадки"], key="prospect_categories_v3", placeholder="Все категории", help="Можно выбрать несколько категорий одновременно. Trustpilot исключён из списка площадок, исходная выдача сохранена в результатах прогона.")
 processed = explorer["Status"].isin(["complete", "supplemental"])
@@ -281,40 +287,47 @@ filtered = explorer
 if selected_keyword != "Все запросы":
     filtered = filtered[filtered["Keyword"] == selected_keyword]
 filtered = filtered.sort_values(["Date", "Position", "Keyword"], ascending=[False, True, True], kind="stable")
+filtered = filtered.copy()
+filtered["_site"] = filtered["Domain"].fillna("").astype(str).str.lower().str.removeprefix("www.")
 
 relevance_labels = {"yes": "Возможно подходит", "no": "Не подходит", "needs_review": "Нужна проверка"}
 column_labels = {"URL": "Ссылка на страницу", "Domain": "Домен", "Position": "Позиция", "Relevance": "Оценка", "Brands": "Бренды", "Contact": "Контакт на странице", "Contact page": "Страница контактов", "Public contact candidate": "Возможный контакт", "Contact candidate source": "Источник контакта", "Keyword": "Запрос", "Date": "Дата", "Status": "Способ оценки", "Evidence": "Подтверждение", "Error": "Причина проверки", "SERP source": "Источник позиции", "Page source": "Источник страницы", "Analysis version": "Версия анализа", "Review note": "Примечание к проверке"}
 if filtered.empty:
     st.info("Нет результатов с выбранными фильтрами. Измените категории, запрос или снимите ограничение по контактам.")
 else:
-    st.markdown(f'''<div class="results-summary"><div class="results-count">Позиций: {len(filtered)} &nbsp; · &nbsp; Страниц: {filtered['URL'].nunique()}</div><div class="results-legend"><span>🟢 Возможно подходит</span><span>🟡 Проверить</span><span>🟠 Не подходит</span><span>⚪ Нет анализа</span></div></div>''', unsafe_allow_html=True)
-    if selected_keyword == "Все запросы":
-        st.caption("№ - номер строки, место в Google указано отдельно для каждого запроса. Фильтры могут скрывать часть результатов.")
-    presentation = filtered.copy()
+    presentation = filtered.drop_duplicates(subset=["Date", "_site"]).copy()
+    st.markdown(f'''<div class="results-summary"><div class="results-count">Площадок: {len(presentation)}</div><div class="results-legend"><span>🟢 Возможно подходит</span><span>🟡 Проверить</span><span>🟠 Не подходит</span><span>⚪ Нет анализа</span></div></div>''', unsafe_allow_html=True)
+    st.caption("Для каждой площадки показана страница с лучшей позицией среди выбранных результатов. Другие выбранные страницы и позиции доступны в подробностях.")
     presentation.insert(0, "№", range(1, len(presentation) + 1))
     # Count coverage across the full latest snapshot, before prospect filters.
     # This is not traffic, search volume, or the reason for a Google rank.
-    domain_key = current["Domain"].fillna("").astype(str).str.lower().str.replace(r"^www\.", "", regex=True)
-    keyword_coverage = current.assign(_domain_key=domain_key).groupby("_domain_key")["Keyword"].nunique()
-    presentation["Запросов в топ-10"] = presentation["Domain"].fillna("").astype(str).str.lower().str.replace(r"^www\.", "", regex=True).map(keyword_coverage).fillna(0).astype(int)
+    domain_key = frame["Domain"].fillna("").astype(str).str.lower().str.removeprefix("www.")
+    keyword_coverage = frame.assign(_site=domain_key).groupby(["Date", "_site"])["Keyword"].nunique()
+    presentation["Запросов в топ-10"] = [int(keyword_coverage.get((day, site), 0)) for day, site in zip(presentation["Date"], presentation["_site"])]
     presentation["Relevance"] = presentation.apply(lambda row: "Нет анализа" if row["Status"] not in ("complete", "supplemental") else relevance_labels.get(row["Relevance"], "Нужна проверка"), axis=1)
     presentation["Brands"] = presentation.apply(lambda row: row["Brands"] or ("Не найдены при анализе" if row["Status"] in ("complete", "supplemental") else "Не удалось определить"), axis=1)
     presentation["Public contact candidate"] = presentation.apply(lambda row: row["Public contact candidate"] or row["Contact"] or ("См. страницу контактов" if row["Contact page"] else "Не найден"), axis=1)
     presentation["Status"] = presentation["Status"].map({"complete": "AI-анализ", "supplemental": "Дополнительная проверка, 26.11.2026", "pending": "Ожидает", "needs_review": "Нет анализа"}).fillna("Нет анализа")
     presentation = presentation.rename(columns=column_labels)
-    styled = presentation.style.map(assessment_color, subset=["Оценка"])
     columns = ["№", "Ссылка на страницу", "Позиция", "Запрос", "Запросов в топ-10", "Возможный контакт", "Страница контактов", "Оценка", "Бренды", "Дата"]
-    st.caption("Запросов в топ-10 - по скольким из 10 запросов найден домен, это не показатель посещаемости и не причина позиции в Google.")
+    styled = presentation[columns].style.map(assessment_color, subset=["Оценка"])
+    st.caption("Запросов в топ-10 - по скольким запросам площадка попала в результаты за эту дату. Это не посещаемость сайта.")
     st.dataframe(styled, hide_index=True, width="stretch", height=420,
                  column_order=columns,
-                 column_config={"№": st.column_config.NumberColumn("№", width=40), "Позиция": st.column_config.NumberColumn("Место в Google", width="small"), "Ссылка на страницу": st.column_config.LinkColumn("Страница", display_text=r"https?://([^/]+).*", width=135), "Оценка": st.column_config.TextColumn("Оценка", width="medium"), "Бренды": st.column_config.TextColumn("Бренды", width="medium"), "Контакт на странице": st.column_config.TextColumn("Контакт на странице", width="medium"), "Возможный контакт": st.column_config.TextColumn("Контакт", width=170), "Страница контактов": st.column_config.LinkColumn("Страница контактов", display_text="Открыть контакты ↗"), "Источник контакта": st.column_config.LinkColumn("Источник контакта", display_text="Открыть источник ↗")})
+                 column_config={"№": st.column_config.NumberColumn("№", width=40), "Позиция": st.column_config.NumberColumn("Лучшая позиция", width="small"), "Ссылка на страницу": st.column_config.LinkColumn("Площадка", display_text=r"https?://([^/]+).*", width=135), "Оценка": st.column_config.TextColumn("Оценка страницы", width="medium"), "Бренды": st.column_config.TextColumn("Бренды", width="medium"), "Возможный контакт": st.column_config.TextColumn("Контакт", width=170), "Страница контактов": st.column_config.LinkColumn("Страница контактов", display_text="Открыть контакты ↗")})
     with st.expander("Подробнее о странице и источниках"):
-        detail_options = filtered.drop_duplicates(subset=["URL"])
-        selected_url = st.selectbox("Выберите страницу", detail_options["URL"].tolist(), key="page_detail")
-        detail = detail_options.loc[detail_options["URL"] == selected_url].iloc[0]
+        detail_options = filtered.drop_duplicates(subset=["Date", "_site"])
+        selected_site = st.selectbox("Выберите площадку", detail_options["_site"].tolist(), key="site_detail")
+        site_results = filtered[filtered["_site"] == selected_site]
+        page_options = site_results["URL"].drop_duplicates().tolist()
+        selected_url = st.selectbox("Страница площадки", page_options, key="page_detail") if len(page_options) > 1 else page_options[0]
+        page_results = site_results[site_results["URL"] == selected_url]
+        detail = page_results.iloc[0]
         url = escape(str(detail["URL"]), quote=True)
         domain = escape(str(detail["Domain"]))
         st.markdown(f'''<div class="detail-heading"><a href="{url}" target="_blank" rel="noopener noreferrer">{domain} ↗</a></div><div class="detail-sub">Позиция {escape(str(detail["Position"]))} · {escape(str(detail["Keyword"]))} · {escape(str(detail["Date"]))}</div>''', unsafe_allow_html=True)
+        if len(page_results) > 1:
+            st.dataframe(page_results[["Position", "Keyword"]].rename(columns={"Position": "Позиция", "Keyword": "Запрос"}), hide_index=True, width="stretch")
         status = "Нет принятого анализа" if detail["Status"] not in ("complete", "supplemental") else relevance_labels.get(detail["Relevance"], "Нужна проверка")
         st.write("**Оценка:** " + status)
         if detail["Status"] not in ("complete", "supplemental"):
@@ -342,8 +355,9 @@ else:
             st.caption(friendly_error(detail["Error"]))
         source_labels = {"restored_from_google_web": "Восстановлена провайдером через Google Web", "original_or_verification_unavailable": "Исходная либо результат проверки недоступен", "verification_not_requested": "Проверка источника не запрашивалась", "unknown": "Неизвестен", "fictional_demo": "Демо-данные"}
         st.caption("Источник позиции: " + source_labels.get(str(detail["SERP source"]), str(detail["SERP source"])))
-        st.caption("Источник содержимого: " + str(detail["Page source"]))
-    safe = presentation.map(safe_cell)
+        page_source = {"direct_or_unknown": "Страница сайта или источник не указан", "fictional_demo": "Демо-данные"}.get(str(detail["Page source"]), str(detail["Page source"]))
+        st.caption("Источник содержимого: " + page_source)
+    safe = presentation[[*columns, "Источник позиции", "Примечание к проверке"]].map(safe_cell)
     csv_data = safe.to_csv(index=False).encode("utf-8-sig")
     workbook = Workbook()
     sheet = workbook.active

@@ -75,5 +75,15 @@ next(item for item in app.radio if item.label == "Источник данных"
 assert not app.exception, [item.value for item in app.exception]
 assert not any("Обновить демо" in button.label for button in app.button)
 assert not app.progress
+if app.dataframe:
+    table = app.dataframe[0].value
+    missing_contact = table[table["Возможный контакт"].eq("Не найден")]
+    assert not (missing_contact["Оценка"] == "Возможно подходит").any()
+    next(item for item in app.multiselect if item.label == "Показать").set_value(["Нужна проверка"]).run(timeout=30)
+    assert not app.exception, [item.value for item in app.exception]
+    if app.dataframe:
+        table = app.dataframe[0].value
+        missing_contact = table[table["Возможный контакт"].eq("Не найден")]
+        assert (missing_contact["Оценка"] == "Нужна проверка").all()
 print("UI smoke test passed: Russian demo, filters, saved snapshot and live mode.")
 

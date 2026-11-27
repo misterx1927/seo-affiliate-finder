@@ -23,11 +23,18 @@ def serp_provenance(position: int, ranks: str | None, requested: int | None) -> 
 
 def export_observations(conn: sqlite3.Connection, destination: str | Path, run_id: int | None = None) -> int:
     rows = conn.execute("""SELECT o.day, o.keyword, o.position, o.url, o.domain,
-           p.status, p.relevance, p.brands_json, p.contact, p.evidence_json, p.analysis_version,
-           d.from_web_ranks, d.verification_requested, ps.source,
+           CASE WHEN tr.run_id IS NOT NULL THEN COALESCE(h.status, 'pending') ELSE p.status END,
+           CASE WHEN tr.run_id IS NOT NULL THEN h.relevance ELSE p.relevance END,
+           CASE WHEN tr.run_id IS NOT NULL THEN h.brands_json ELSE p.brands_json END,
+           CASE WHEN tr.run_id IS NOT NULL THEN h.contact ELSE p.contact END,
+           CASE WHEN tr.run_id IS NOT NULL THEN h.evidence_json ELSE p.evidence_json END,
+           CASE WHEN tr.run_id IS NOT NULL THEN h.analysis_version ELSE p.analysis_version END,
+           d.from_web_ranks, d.verification_requested, CASE WHEN tr.run_id IS NOT NULL THEN 'not_recorded' ELSE ps.source END,
            (SELECT email FROM outreach_contact_candidates x WHERE x.page_url=o.url ORDER BY x.observed_at DESC,x.email,x.source_url LIMIT 1),
            (SELECT source_url FROM outreach_contact_candidates x WHERE x.page_url=o.url ORDER BY x.observed_at DESC,x.email,x.source_url LIMIT 1)
            FROM observations o LEFT JOIN pages p ON p.url = o.url
+           LEFT JOIN run_analysis_tracking tr ON tr.run_id=o.run_id
+           LEFT JOIN run_page_analysis h ON h.run_id=o.run_id AND h.url=o.url
            LEFT JOIN serp_diagnostics d ON d.run_id=o.run_id AND d.keyword=o.keyword
            LEFT JOIN page_cache_provenance ps ON ps.url=o.url
            WHERE (? IS NULL OR o.run_id = ?)
@@ -44,11 +51,18 @@ def export_observations(conn: sqlite3.Connection, destination: str | Path, run_i
 def export_partial_observations(conn: sqlite3.Connection, destination: str | Path, run_id: int | None = None) -> int:
     """Export incomplete results separately so they never replace completed history."""
     rows = conn.execute("""SELECT o.run_id, o.day, o.keyword, o.position, o.url, o.domain,
-           p.status, p.relevance, p.brands_json, p.contact, p.evidence_json, p.analysis_version,
-           d.from_web_ranks, d.verification_requested, ps.source,
+           CASE WHEN tr.run_id IS NOT NULL THEN COALESCE(h.status, 'pending') ELSE p.status END,
+           CASE WHEN tr.run_id IS NOT NULL THEN h.relevance ELSE p.relevance END,
+           CASE WHEN tr.run_id IS NOT NULL THEN h.brands_json ELSE p.brands_json END,
+           CASE WHEN tr.run_id IS NOT NULL THEN h.contact ELSE p.contact END,
+           CASE WHEN tr.run_id IS NOT NULL THEN h.evidence_json ELSE p.evidence_json END,
+           CASE WHEN tr.run_id IS NOT NULL THEN h.analysis_version ELSE p.analysis_version END,
+           d.from_web_ranks, d.verification_requested, CASE WHEN tr.run_id IS NOT NULL THEN 'not_recorded' ELSE ps.source END,
            (SELECT email FROM outreach_contact_candidates x WHERE x.page_url=o.url ORDER BY x.observed_at DESC,x.email,x.source_url LIMIT 1),
            (SELECT source_url FROM outreach_contact_candidates x WHERE x.page_url=o.url ORDER BY x.observed_at DESC,x.email,x.source_url LIMIT 1)
            FROM partial_observations o LEFT JOIN pages p ON p.url = o.url
+           LEFT JOIN run_analysis_tracking tr ON tr.run_id=o.run_id
+           LEFT JOIN run_page_analysis h ON h.run_id=o.run_id AND h.url=o.url
            LEFT JOIN serp_diagnostics d ON d.run_id=o.run_id AND d.keyword=o.keyword
            LEFT JOIN page_cache_provenance ps ON ps.url=o.url
            WHERE (? IS NULL OR o.run_id = ?)

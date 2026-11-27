@@ -61,6 +61,9 @@ CREATE TABLE IF NOT EXISTS run_page_analysis (
  relevance TEXT, brands_json TEXT, contact TEXT, evidence_json TEXT,
  error TEXT, analysis_version TEXT, PRIMARY KEY(run_id, url)
 );
+CREATE TABLE IF NOT EXISTS run_analysis_tracking (
+ run_id INTEGER PRIMARY KEY REFERENCES runs(id)
+);
 """
 
 

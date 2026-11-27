@@ -23,6 +23,7 @@ def run_live(conn, day, keywords, serp, analyzer, fetch, lock_path, max_pages, r
         with conn:
             if resume_id is None:
                 run_id = conn.execute("INSERT INTO runs(started_at, mode, status) VALUES (?, 'live', 'running')", (_now(),)).lastrowid
+                conn.execute("INSERT INTO run_analysis_tracking(run_id) VALUES (?)", (run_id,))
             else:
                 previous = conn.execute("SELECT mode, status FROM runs WHERE id=?", (resume_id,)).fetchone()
                 checkpoints = conn.execute("SELECT DISTINCT day FROM run_keywords WHERE run_id=?", (resume_id,)).fetchall()

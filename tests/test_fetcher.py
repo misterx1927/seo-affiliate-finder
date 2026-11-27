@@ -73,6 +73,13 @@ class FetchTests(unittest.TestCase):
         with self.assertRaisesRegex(PageError, "manual review"):
             extract_text(html)
 
+    def test_regional_gate_with_title_and_message_requires_review(self):
+        html = ("<title>Not available in your area | Gambling Sage</title>"
+                "<h1>Not available in your area</h1><p>This page isn't available in your area.</p>"
+                "<footer>Go to the homepage</footer>").encode()
+        with self.assertRaisesRegex(PageError, "regional mismatch"):
+            extract_text(html)
+
     def test_javascript_article_without_robot_gate_is_not_blocked(self):
         html = ("<article><h1>JavaScript is disabled</h1>" +
                 "This review discusses browser settings. " * 100 + "</article>").encode()

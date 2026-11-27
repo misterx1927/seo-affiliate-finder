@@ -14,11 +14,12 @@ assert app.selectbox[0].value == "Все запросы"
 queue = next(item for item in app.multiselect if item.label == "Показать")
 queue.set_value(["Возможные площадки"]).run(timeout=30)
 assert not app.exception, [item.value for item in app.exception]
-assert len(app.dataframe[0].value) == 10
-assert app.dataframe[0].value["№"].tolist() == list(range(1, 11))
+assert len(app.dataframe[0].value) == 1
+assert app.dataframe[0].value["№"].tolist() == [1]
 assert "Позиция" in app.dataframe[0].value.columns
 assert set(app.dataframe[0].value["Запросов в топ-10"]) == {10}
 assert set(app.dataframe[0].value["Оценка"]) == {"Возможно подходит"}
+assert len(app.dataframe[1].value) == 10
 app.selectbox[0].select("online casino canada").run(timeout=30)
 assert not app.exception
 assert len(app.dataframe[0].value) == 1
@@ -41,6 +42,9 @@ assert "info@cflnewshub.com" in contacts
 assert "См. страницу контактов" in contacts
 assert not any(value == "" for value in contacts)
 saved_table = app.dataframe[0].value
+domains = saved_table["Ссылка на страницу"].str.extract(r"^https?://(?:www\.)?([^/]+)", expand=False).str.lower()
+assert not domains.duplicated().any(), domains.tolist()
+assert len(saved_table) == int(metrics["ВОЗМОЖНЫЕ ПЛОЩАДКИ"])
 for domain, contact_page in {
     "pokertube.com": "https://www.pokertube.com/contact",
     "squawka.com": "https://www.squawka.com/ca/help-and-faqs/",
@@ -50,6 +54,11 @@ for domain, contact_page in {
     assert len(matching) > 0, f"{domain}: missing from saved results"
     assert set(matching["Страница контактов"]) == {contact_page}, domain
     assert set(matching["Возможный контакт"]) == {"См. страницу контактов"}, domain
+app.selectbox[0].select("fast payout casino canada").run(timeout=30)
+next(item for item in app.selectbox if item.label == "Выберите площадку").select("casino.ca").run(timeout=30)
+pages = next(item for item in app.selectbox if item.label == "Страница площадки").options
+assert any("/fast-withdrawals/" in page for page in pages), pages
+assert any("/highest-payouts/" in page for page in pages), pages
 next(item for item in app.multiselect if item.label == "Показать").set_value([]).run(timeout=30)
 assert app.dataframe and len(app.dataframe[0].value) > 0
 app.selectbox[0].select("Все запросы").run(timeout=30)

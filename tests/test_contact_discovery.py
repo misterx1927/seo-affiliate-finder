@@ -42,6 +42,17 @@ class ContactDiscoveryTests(unittest.TestCase):
         self.assertIsNone(choose_contact(['team@publisher.example', 'help@publisher.example'], 'https://publisher.example/contact'))
         self.assertEqual(choose_contact(['support@publisher.example', 'partners@publisher.example'], 'https://publisher.example/contact'), 'partners@publisher.example')
 
+    def test_same_mailbox_in_text_and_protected_link_is_not_ambiguous(self):
+        address = 'Partners@publisher.com'
+        key = 0x35
+        encoded = bytes([key] + [key ^ b for b in address.lower().encode('ascii')]).hex()
+        page = (f'<h1>Contact</h1><p>{address}</p>'
+                f'<span data-cfemail="{encoded}">[email protected]</span>').encode()
+        with patch('discover_contacts.fetch_page', return_value=(page, 'utf-8')):
+            self.assertEqual(inspect_page('https://publisher.com/contact'), (address, None))
+        self.assertIsNone(choose_contact(['Partners@publisher.com', 'media@publisher.com'],
+                                         'https://publisher.com/contact'))
+
     def test_explicit_obfuscation_is_decoded_without_inventing_addresses(self):
         text = 'Write to press [at] publisher [dot] com or sales(at)publisher.com.'
         self.assertEqual(public_email_candidates(text), ['press@publisher.com', 'sales@publisher.com'])
@@ -62,6 +73,7 @@ class ContactDiscoveryTests(unittest.TestCase):
 
     def test_uncertain_cached_pages_are_included_but_rejected_pages_excluded(self):
         conn = sqlite3.connect(':memory:')
+        self.addCleanup(conn.close)
         conn.row_factory = sqlite3.Row
         conn.executescript('''CREATE TABLE observations(run_id INTEGER, url TEXT);
           CREATE TABLE pages(url TEXT, status TEXT, relevance TEXT, contact TEXT);

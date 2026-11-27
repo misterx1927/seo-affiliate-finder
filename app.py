@@ -259,9 +259,14 @@ prospects = current.loc[(current["Relevance"] == "yes") & (current["Status"].isi
 prospect_domains = prospects["Domain"].fillna("").astype(str).str.lower().str.removeprefix("www.")
 d.metric("ВОЗМОЖНЫЕ ПЛОЩАДКИ", str(prospect_domains.nunique()), help="Предварительная оценка AI или дополнительная проверка. Пригодность площадки нужно подтвердить.")
 
+if latest and not is_demo:
+    st.caption(f"Результаты за {latest}")
 if not is_demo and "SERP source" in current.columns:
     restored = int((current["SERP source"] == "restored_from_google_web").sum())
-    st.caption(f"{restored} из {len(current)} позиций восстановлены через Google Web и могут отличаться от мобильной выдачи. Дополнительная проверка не является AI-анализом, контакты требуют подтверждения.")
+    if restored:
+        st.caption(f"{restored} из {len(current)} позиций восстановлены через Google Web и могут отличаться от мобильной выдачи. Дополнительная проверка не является AI-анализом, контакты требуют подтверждения.")
+    else:
+        st.caption("Позиции и контакты требуют дополнительного подтверждения.")
 
 st.markdown('''<div class="section-top"><div><div class="section-label">Результаты поиска</div></div></div>''', unsafe_allow_html=True)
 show_history = False
@@ -381,13 +386,19 @@ else:
     with y: st.download_button("↓ Скачать Excel", output.getvalue(), ("demo-results.xlsx" if is_demo else "live-results.xlsx"), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", width="stretch")
 
 if partial_rows:
-    with st.expander("Неполные поисковые запуски"):
-        st.caption("Эти результаты сохранены отдельно: для них не получен полный топ-10 либо есть неразрешённые ссылки.")
-        partial_view = pd.DataFrame([dict(row) for row in partial_rows])
+    partial_view = pd.DataFrame([dict(row) for row in partial_rows])
+    partial_view = partial_view[partial_view["Run"] == partial_view["Run"].max()].copy()
+    incomplete_count = partial_view["Keyword"].nunique()
+    partial_date = str(partial_view["Date"].max())
+    with st.expander(f"Неполные результаты за {partial_date}: {incomplete_count} запросов"):
+        st.caption("По этим запросам получены не все результаты. Позиции сохранены отдельно и требуют проверки.")
+        partial_view = partial_view.loc[~partial_view["URL"].map(excluded_from_prospects).astype(bool)]
+        partial_view = partial_view.drop_duplicates(subset=["Keyword", "URL"])
         partial_view["Brands"] = partial_view["Brands"].apply(lambda value: ", ".join(json.loads(value)) if isinstance(value, str) and value else "")
         partial_view["Relevance"] = partial_view["Relevance"].map(relevance_labels).fillna("Нет анализа")
         partial_view = partial_view.rename(columns={**column_labels, "Run": "Запуск", "Note": "Причина проверки"})
-        st.dataframe(partial_view, hide_index=True, width="stretch", column_order=["Ссылка на страницу", "Запуск", "Дата", "Позиция", "Запрос", "Оценка", "Бренды", "Причина проверки"], column_config={"Ссылка на страницу": st.column_config.LinkColumn("Ссылка на страницу", display_text=r"https?://([^/]+).*")})
+        partial_columns = ["Ссылка на страницу", "Позиция", "Запрос", "Оценка", "Бренды", "Причина проверки"]
+        st.dataframe(partial_view[partial_columns], hide_index=True, width="stretch", column_config={"Ссылка на страницу": st.column_config.LinkColumn("Ссылка на страницу", display_text=r"https?://([^/]+).*")})
 
 st.markdown('<div class="footer"><span>✳ &nbsp; Affiliate Finder</span><span>Просмотр сохранённых результатов без новых запросов</span></div>', unsafe_allow_html=True)
 

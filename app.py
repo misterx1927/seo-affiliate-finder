@@ -119,6 +119,20 @@ def excluded_from_prospects(url):
     return host == "trustpilot.com" or host.endswith(".trustpilot.com") or is_video_result(str(url))
 
 
+def assessment_categories(rows):
+    processed = rows["Status"].isin(["complete", "supplemental"])
+    has_contact = pd.Series(False, index=rows.index)
+    for name in ("Contact", "Public contact candidate", "Contact page"):
+        if name in rows.columns:
+            has_contact |= rows[name].fillna("").astype(str).str.strip().ne("")
+    result = pd.Series("Нет анализа", index=rows.index)
+    result.loc[processed & (rows["Relevance"] == "yes") & has_contact] = "Возможные площадки"
+    result.loc[processed & (rows["Relevance"] == "yes") & ~has_contact] = "Нужна проверка"
+    result.loc[processed & (rows["Relevance"] == "no")] = "Не подходят"
+    result.loc[processed & (rows["Relevance"] == "needs_review")] = "Нужна проверка"
+    return result
+
+
 def assessment_color(value):
     colors = {
         "Возможно подходит": "color: #b8f27a; background-color: #243d27; font-weight: 600",
@@ -255,9 +269,9 @@ a, b, c, d = st.columns(4)
 a.metric("ЗАПРОСЫ", str(current["Keyword"].nunique()))
 b.metric("ПОЗИЦИИ", str(len(current)))
 c.metric("СТРАНИЦЫ", str(current["URL"].nunique()))
-prospects = current.loc[(current["Relevance"] == "yes") & (current["Status"].isin(["complete", "supplemental"])) & ~current["URL"].map(excluded_from_prospects).astype(bool)]
+prospects = current.loc[(assessment_categories(current) == "Возможные площадки") & ~current["URL"].map(excluded_from_prospects).astype(bool)]
 prospect_domains = prospects["Domain"].fillna("").astype(str).str.lower().str.removeprefix("www.")
-d.metric("ВОЗМОЖНЫЕ ПЛОЩАДКИ", str(prospect_domains.nunique()), help="Предварительная оценка AI или дополнительная проверка. Пригодность площадки нужно подтвердить.")
+d.metric("ВОЗМОЖНЫЕ ПЛОЩАДКИ", str(prospect_domains.nunique()), help="Площадки с подходящей страницей и найденным контактом или страницей контактов. Пригодность нужно подтвердить.")
 
 if latest and not is_demo:
     st.caption(f"Результаты за {latest}")
@@ -276,11 +290,8 @@ explorer = frame if latest is None else frame[frame["Date"] == latest]
 explorer = explorer.loc[~explorer["URL"].map(excluded_from_prospects).astype(bool)]
 categories = ["Возможные площадки", "Нужна проверка", "Не подходят", "Нет анализа"]
 selected_categories = st.multiselect("Показать", categories, default=["Возможные площадки"], key="prospect_categories_v3", placeholder="Все категории", help="Можно выбрать несколько категорий одновременно. Trustpilot исключён из списка площадок, исходная выдача сохранена в результатах прогона.")
-processed = explorer["Status"].isin(["complete", "supplemental"])
-category = pd.Series("Нет анализа", index=explorer.index)
-category.loc[processed & (explorer["Relevance"] == "yes")] = "Возможные площадки"
-category.loc[processed & (explorer["Relevance"] == "no")] = "Не подходят"
-category.loc[processed & (explorer["Relevance"] == "needs_review")] = "Нужна проверка"
+category = assessment_categories(explorer)
+explorer = explorer.assign(_assessment=category)
 if selected_categories:
     explorer = explorer[category.isin(selected_categories)]
 only_contacts = st.checkbox("Только с контактом или страницей контактов", value=False, help="Показывает адреса, найденные на странице, возможные публичные контакты и ссылки на контактные страницы. Перед обращением их нужно проверить.")
@@ -309,13 +320,14 @@ else:
     domain_key = frame["Domain"].fillna("").astype(str).str.lower().str.removeprefix("www.")
     keyword_coverage = frame.assign(_site=domain_key).groupby(["Date", "_site"])["Keyword"].nunique()
     presentation["Запросов в топ-10"] = [int(keyword_coverage.get((day, site), 0)) for day, site in zip(presentation["Date"], presentation["_site"])]
-    presentation["Relevance"] = presentation.apply(lambda row: "Нет анализа" if row["Status"] not in ("complete", "supplemental") else relevance_labels.get(row["Relevance"], "Нужна проверка"), axis=1)
+    presentation["Relevance"] = presentation["_assessment"].replace({"Возможные площадки": "Возможно подходит", "Не подходят": "Не подходит"})
     presentation["Brands"] = presentation.apply(lambda row: row["Brands"] or ("Не найдены при анализе" if row["Status"] in ("complete", "supplemental") else "Не удалось определить"), axis=1)
     presentation["Public contact candidate"] = presentation.apply(lambda row: row["Public contact candidate"] or row["Contact"] or ("См. страницу контактов" if row["Contact page"] else "Не найден"), axis=1)
     presentation["Status"] = presentation["Status"].map({"complete": "AI-анализ", "supplemental": "Дополнительная проверка, 26.11.2026", "pending": "Ожидает", "needs_review": "Нет анализа"}).fillna("Нет анализа")
     presentation = presentation.rename(columns=column_labels)
     columns = ["№", "Ссылка на страницу", "Позиция", "Запрос", "Запросов в топ-10", "Возможный контакт", "Страница контактов", "Оценка", "Бренды", "Дата"]
-    styled = presentation[columns].style.map(assessment_color, subset=["Оценка"])
+    styled = (presentation[columns].style.map(assessment_color, subset=["Оценка"])
+              .map(lambda value: assessment_color("Нужна проверка") if value == "Не найден" else "", subset=["Возможный контакт"]))
     st.caption("Запросов в топ-10 - по скольким запросам площадка попала в результаты за эту дату. Это не посещаемость сайта.")
     st.dataframe(styled, hide_index=True, width="stretch", height=420,
                  column_order=columns,
@@ -333,8 +345,10 @@ else:
         st.markdown(f'''<div class="detail-heading"><a href="{url}" target="_blank" rel="noopener noreferrer">{domain} ↗</a></div><div class="detail-sub">Позиция {escape(str(detail["Position"]))} · {escape(str(detail["Keyword"]))} · {escape(str(detail["Date"]))}</div>''', unsafe_allow_html=True)
         if len(page_results) > 1:
             st.dataframe(page_results[["Position", "Keyword"]].rename(columns={"Position": "Позиция", "Keyword": "Запрос"}), hide_index=True, width="stretch")
-        status = "Нет принятого анализа" if detail["Status"] not in ("complete", "supplemental") else relevance_labels.get(detail["Relevance"], "Нужна проверка")
+        status = {"Возможные площадки": "Возможно подходит", "Не подходят": "Не подходит", "Нужна проверка": "Нужна проверка", "Нет анализа": "Нет анализа"}[detail["_assessment"]]
         st.write("**Оценка:** " + status)
+        if detail["_assessment"] == "Нужна проверка" and detail["Relevance"] == "yes":
+            st.caption("Страница может подходить по содержанию, но контакт и страница контактов не найдены.")
         if detail["Status"] not in ("complete", "supplemental"):
             st.info(friendly_error(detail["Error"]))
             st.write("**Бренды:** Не удалось определить")

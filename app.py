@@ -1,4 +1,5 @@
 from datetime import date
+from contextlib import closing
 from html import escape
 from io import BytesIO
 import json
@@ -91,7 +92,7 @@ def live_results_exist():
     if not Path("data/live.db").is_file():
         return False
     try:
-        with sqlite3.connect("data/live.db") as db:
+        with closing(sqlite3.connect("data/live.db")) as db:
             return bool(db.execute("SELECT 1 FROM observations LIMIT 1").fetchone())
     except sqlite3.Error:
         return False
@@ -180,7 +181,7 @@ is_snapshot = source == "Сохранённый прогон"
 mode_label = "ДЕМО" if is_demo else ("СОХРАНЁННЫЙ ПРОГОН" if is_snapshot else "РЕАЛЬНЫЕ ДАННЫЕ")
 st.markdown(f'''<div class="topbar"><div class="brand"><span class="brand-mark">✳</span> affiliate finder <span class="brand-sub">поиск партнёров</span></div><div class="top-meta"><span class="pill">🇨🇦 &nbsp; Канада / EN / мобильная выдача</span><span class="pill"><span class="dot"></span>{mode_label}</span></div></div>''', unsafe_allow_html=True)
 
-with connect("data/demo.db" if is_demo else "data/live.db") as conn:
+with closing(connect("data/demo.db" if is_demo else "data/live.db")) as conn:
     review_path = Path("results/independent-review-2026-11-26.json")
     supplemental = json.loads(review_path.read_text(encoding="utf-8")) if not is_demo and review_path.is_file() else {}
     domain_contact_path = Path("results/public-domain-contacts.json")
@@ -193,14 +194,21 @@ with connect("data/demo.db" if is_demo else "data/live.db") as conn:
         if contact_link:
             contact_links[cached['url']] = contact_link
     rows = conn.execute("""SELECT o.day AS Date, o.keyword AS Keyword, o.position AS Position, o.domain AS Domain,
-        o.url AS URL, COALESCE(p.relevance, 'needs_review') AS Relevance, p.brands_json AS Brands,
-        COALESCE(p.contact, '') AS Contact, COALESCE(p.status, 'pending') AS Status,
-        p.evidence_json AS Evidence, COALESCE(p.error, '') AS Error, COALESCE(p.analysis_version, '') AS AnalysisVersion,
+        o.url AS URL, COALESCE(CASE WHEN tr.run_id IS NOT NULL THEN h.relevance ELSE p.relevance END, 'needs_review') AS Relevance,
+        CASE WHEN tr.run_id IS NOT NULL THEN h.brands_json ELSE p.brands_json END AS Brands,
+        COALESCE(CASE WHEN tr.run_id IS NOT NULL THEN h.contact ELSE p.contact END, '') AS Contact,
+        COALESCE(CASE WHEN tr.run_id IS NOT NULL THEN h.status ELSE p.status END, 'pending') AS Status,
+        CASE WHEN tr.run_id IS NOT NULL THEN h.evidence_json ELSE p.evidence_json END AS Evidence,
+        COALESCE(CASE WHEN tr.run_id IS NOT NULL THEN h.error ELSE p.error END, '') AS Error,
+        COALESCE(CASE WHEN tr.run_id IS NOT NULL THEN h.analysis_version ELSE p.analysis_version END, '') AS AnalysisVersion,
         d.from_web_ranks AS WebRanks, d.verification_requested AS VerificationRequested,
-        ps.source AS PageSource,
+        CASE WHEN tr.run_id IS NOT NULL THEN 'not_recorded' ELSE ps.source END AS PageSource,
+        CASE WHEN tr.run_id IS NOT NULL THEN 1 ELSE 0 END AS HistoryTracked,
         COALESCE((SELECT email FROM outreach_contact_candidates x WHERE x.page_url=o.url ORDER BY x.observed_at DESC,x.email,x.source_url LIMIT 1),'') AS ContactCandidate,
         COALESCE((SELECT source_url FROM outreach_contact_candidates x WHERE x.page_url=o.url ORDER BY x.observed_at DESC,x.email,x.source_url LIMIT 1),'') AS ContactCandidateSource
         FROM observations o LEFT JOIN pages p ON o.url=p.url
+        LEFT JOIN run_analysis_tracking tr ON tr.run_id=o.run_id
+        LEFT JOIN run_page_analysis h ON h.run_id=o.run_id AND h.url=o.url
         LEFT JOIN serp_diagnostics d ON d.run_id=o.run_id AND d.keyword=o.keyword
         LEFT JOIN page_cache_provenance ps ON ps.url=o.url
         ORDER BY o.day DESC, o.keyword, o.position""").fetchall()
@@ -208,10 +216,15 @@ with connect("data/demo.db" if is_demo else "data/live.db") as conn:
         rows = load_snapshot("results/run-7-ai-updated.csv")
     partial_rows = [] if is_demo or is_snapshot else conn.execute("""SELECT o.run_id AS Run, o.day AS Date, o.keyword AS Keyword,
         o.position AS Position, o.domain AS Domain, o.url AS URL,
-        COALESCE(p.status, 'pending') AS Status, p.relevance AS Relevance,
-        p.brands_json AS Brands, p.contact AS Contact, p.evidence_json AS Evidence,
-        COALESCE(p.error, '') AS Note
+        COALESCE(CASE WHEN tr.run_id IS NOT NULL THEN h.status ELSE p.status END, 'pending') AS Status,
+        CASE WHEN tr.run_id IS NOT NULL THEN h.relevance ELSE p.relevance END AS Relevance,
+        CASE WHEN tr.run_id IS NOT NULL THEN h.brands_json ELSE p.brands_json END AS Brands,
+        CASE WHEN tr.run_id IS NOT NULL THEN h.contact ELSE p.contact END AS Contact,
+        CASE WHEN tr.run_id IS NOT NULL THEN h.evidence_json ELSE p.evidence_json END AS Evidence,
+        COALESCE(CASE WHEN tr.run_id IS NOT NULL THEN h.error ELSE p.error END, '') AS Note
         FROM partial_observations o LEFT JOIN pages p ON p.url=o.url
+        LEFT JOIN run_analysis_tracking tr ON tr.run_id=o.run_id
+        LEFT JOIN run_page_analysis h ON h.run_id=o.run_id AND h.url=o.url
         ORDER BY o.run_id DESC, o.keyword, o.position""").fetchall()
     displayed = []
     for row in rows:
@@ -229,7 +242,8 @@ with connect("data/demo.db" if is_demo else "data/live.db") as conn:
         item['Public contact candidate'] = (review.get('contact', '') if review else '') or item.pop('ContactCandidate', '')
         item['Contact candidate source'] = (review.get('contact_page', '') if review else '') or item.pop('ContactCandidateSource', '')
         item['Analysis version'] = item.pop('AnalysisVersion', '')
-        item['Contact page'] = review.get('contact_page', '') if review and review.get('contact_page') else contact_links.get(item['URL'], '')
+        tracked_history = bool(item.pop('HistoryTracked', False))
+        item['Contact page'] = review.get('contact_page', '') if review and review.get('contact_page') else ('' if tracked_history else contact_links.get(item['URL'], ''))
         domain_contact = domain_contacts.get((urlsplit(item['URL']).hostname or '').lower().removeprefix('www.'), {})
         if domain_contact and item['Relevance'] == 'yes':
             item['Public contact candidate'] = domain_contact['email'] or item['Public contact candidate']
@@ -374,7 +388,7 @@ else:
             st.caption(friendly_error(detail["Error"]))
         source_labels = {"restored_from_google_web": "Восстановлена провайдером через Google Web", "original_or_verification_unavailable": "Исходная либо результат проверки недоступен", "verification_not_requested": "Проверка источника не запрашивалась", "unknown": "Неизвестен", "fictional_demo": "Демо-данные"}
         st.caption("Источник позиции: " + source_labels.get(str(detail["SERP source"]), str(detail["SERP source"])))
-        page_source = {"direct_or_unknown": "Страница сайта или источник не указан", "fictional_demo": "Демо-данные"}.get(str(detail["Page source"]), str(detail["Page source"]))
+        page_source = {"direct_or_unknown": "Страница сайта или источник не указан", "not_recorded": "Источник для этого запуска не сохранён", "fictional_demo": "Демо-данные"}.get(str(detail["Page source"]), str(detail["Page source"]))
         st.caption("Источник содержимого: " + page_source)
     safe = presentation[[*columns, "Источник позиции", "Примечание к проверке"]].map(safe_cell)
     csv_data = safe.to_csv(index=False).encode("utf-8-sig")

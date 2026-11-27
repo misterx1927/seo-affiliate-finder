@@ -16,6 +16,11 @@ CREATE TABLE IF NOT EXISTS observations (
  PRIMARY KEY(day, keyword, position)
 );
 CREATE INDEX IF NOT EXISTS observations_url ON observations(url);
+CREATE TABLE IF NOT EXISTS run_observations (
+ run_id INTEGER NOT NULL REFERENCES runs(id), day TEXT NOT NULL, keyword TEXT NOT NULL,
+ position INTEGER NOT NULL CHECK(position BETWEEN 1 AND 10), url TEXT NOT NULL, domain TEXT NOT NULL,
+ PRIMARY KEY(run_id, keyword, position)
+);
 CREATE TABLE IF NOT EXISTS run_keywords (
  run_id INTEGER NOT NULL REFERENCES runs(id), day TEXT NOT NULL, keyword TEXT NOT NULL,
  status TEXT NOT NULL, error TEXT, PRIMARY KEY(run_id, keyword)
@@ -109,5 +114,9 @@ def replace_keyword_results(conn: sqlite3.Connection, day: str, keyword: str, re
         url = normalize_url(result["url"])
         rows.append((day, keyword, position, url, urlsplit(url).hostname, run_id))
     with conn:
+        if run_id is not None:
+            conn.execute("DELETE FROM run_observations WHERE run_id=? AND keyword=?", (run_id, keyword))
+            conn.executemany("INSERT INTO run_observations(run_id,day,keyword,position,url,domain) VALUES (?, ?, ?, ?, ?, ?)",
+                             [(run_id, row[0], row[1], row[2], row[3], row[4]) for row in rows])
         conn.execute("DELETE FROM observations WHERE day=? AND keyword=?", (day, keyword))
         conn.executemany("INSERT INTO observations VALUES (?, ?, ?, ?, ?, ?)", rows)

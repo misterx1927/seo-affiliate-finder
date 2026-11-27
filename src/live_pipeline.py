@@ -44,7 +44,13 @@ def run_live(conn, day, keywords, serp, analyzer, fetch, lock_path, max_pages, r
                 checkpoint = conn.execute("SELECT status FROM run_keywords WHERE run_id=? AND keyword=?", (run_id, keyword)).fetchone()
                 if checkpoint:
                     if checkpoint["status"] == "complete":
-                        saved = conn.execute("SELECT url FROM observations WHERE run_id=? AND day=? AND keyword=? ORDER BY position", (run_id, day, keyword)).fetchall()
+                        # A later run can replace the day's current view. Resume
+                        # from this run's snapshot, not that mutable view.
+                        saved = conn.execute("SELECT url FROM run_observations WHERE run_id=? AND day=? AND keyword=? ORDER BY position", (run_id, day, keyword)).fetchall()
+                        if not saved:
+                            # Compatibility with runs created before snapshots
+                            # were introduced, when those rows still exist.
+                            saved = conn.execute("SELECT url FROM observations WHERE run_id=? AND day=? AND keyword=? ORDER BY position", (run_id, day, keyword)).fetchall()
                         if len(saved) == 10:
                             urls.extend(row["url"] for row in saved)
                             complete_keywords += 1

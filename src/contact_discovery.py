@@ -10,6 +10,15 @@ _EMAIL = re.compile(r"(?<![\w.+-])([A-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Z0-9.-]+\.[A
 _TERMS = re.compile(r"contact|partner|advertis|media|business|work-with-us", re.I)
 _LINK_LABEL = re.compile(r"\b(?:contact(?:\s+us)?|get\s+in\s+touch|partnerships?|advertis(?:e|ing)|media\s+inquiries|work\s+with\s+us)\b", re.I)
 _OUTREACH = re.compile(r"advertis|partner|business|media|editor|contact", re.I)
+_HIDDEN = {'script', 'style', 'noscript', 'template', 'iframe', 'svg'}
+_VOID = {'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'}
+
+
+def _hidden_element(tag, attrs):
+    attributes = dict(attrs)
+    style = attributes.get('style') or ''
+    return (tag in _HIDDEN or 'hidden' in attributes or
+            bool(re.search(r'(?:^|;)\s*(?:display\s*:\s*none|visibility\s*:\s*hidden)\s*(?:!important\s*)?(?:;|$)', style, re.I)))
 
 
 class _Links(HTMLParser):
@@ -18,14 +27,32 @@ class _Links(HTMLParser):
         self.urls = []
         self.link = None
         self.label = []
+        self.visible_text = []
+        self.hidden = []
     def handle_starttag(self, tag, attrs):
+        if self.hidden:
+            if tag not in _VOID:
+                self.hidden.append(tag)
+            return
+        if _hidden_element(tag, attrs):
+            if tag not in _VOID:
+                self.hidden.append(tag)
+            return
         if tag == 'a':
             self.link = next((value for key, value in attrs if key == 'href' and value), None)
             self.label = []
     def handle_data(self, text):
+        if self.hidden:
+            return
+        self.visible_text.append(text)
         if self.link is not None:
             self.label.append(text)
     def handle_endtag(self, tag):
+        if self.hidden:
+            if tag in self.hidden:
+                index = len(self.hidden) - 1 - self.hidden[::-1].index(tag)
+                del self.hidden[index:]
+            return
         if tag == 'a' and self.link is not None:
             self.urls.append((self.link, ' '.join(self.label)))
             self.link, self.label = None, []
@@ -49,7 +76,9 @@ def contact_pages(content: bytes, charset: str, page_url: str, limit: int = 2) -
         return []
     # Provider markdown may be stored inside a safe, escaped HTML container.
     from html import unescape
-    markdown = unescape(html)
+    # Only inspect visible text. Raw HTML can contain scripts, comments or
+    # hidden template links that are unrelated to the displayed page.
+    markdown = unescape(' '.join(parser.visible_text))
     links = parser.urls + [(url, label) for label, url in re.findall(r'\[([^\]\n]{1,150})\]\((https?://[^\s)]+|/[^\s)]+)\)', markdown, re.I)]
     candidates = []
     for link, label in links:
@@ -101,8 +130,17 @@ def cloudflare_email_candidates(content: bytes, charset: str) -> list[str]:
         def __init__(self):
             super().__init__(convert_charrefs=True)
             self.encoded = []
+            self.hidden = []
 
         def handle_starttag(self, tag, attrs):
+            if self.hidden:
+                if tag not in _VOID:
+                    self.hidden.append(tag)
+                return
+            if _hidden_element(tag, attrs):
+                if tag not in _VOID:
+                    self.hidden.append(tag)
+                return
             if tag not in ('a', 'span'):
                 return
             for key, value in attrs:
@@ -112,6 +150,11 @@ def cloudflare_email_candidates(content: bytes, charset: str) -> list[str]:
                     self.encoded.append(value)
                 elif key == 'href' and '/cdn-cgi/l/email-protection#' in value:
                     self.encoded.append(value.rsplit('#', 1)[-1])
+
+        def handle_endtag(self, tag):
+            if self.hidden and tag in self.hidden:
+                index = len(self.hidden) - 1 - self.hidden[::-1].index(tag)
+                del self.hidden[index:]
 
     parser = ProtectedEmails()
     try:

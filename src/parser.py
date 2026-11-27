@@ -1,7 +1,7 @@
 """Extract bounded, readable text from HTML without executing page scripts."""
 from html.parser import HTMLParser
 import re
-from urllib.parse import urljoin, urlsplit, urldefrag
+from urllib.parse import unquote, urljoin, urlsplit, urldefrag
 
 # Some ordinary pages include several megabytes of inline scripts and metadata.
 # Keep a hard bound on the download/parser while accepting those pages.
@@ -79,7 +79,9 @@ class _TextExtractor(HTMLParser):
                 self.anchor = {"href": attributes.get("href") or "", "label": []}
                 for key, value in attrs:
                     if key == "href" and value and value.lower().startswith("mailto:"):
-                        self.parts.append(" " + value[7:].split("?", 1)[0] + " ")
+                        # Percent-encoded addresses are common in public mailto
+                        # links. Decode the address only, never the subject or body.
+                        self.parts.append(" " + unquote(value[7:].split("?", 1)[0]) + " ")
     def handle_endtag(self, tag):
         if self.hidden:
             if tag in self.hidden:

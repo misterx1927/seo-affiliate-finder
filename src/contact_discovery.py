@@ -129,7 +129,13 @@ def cloudflare_email_candidates(content: bytes, charset: str) -> list[str]:
             continue
         if _EMAIL.fullmatch(address):
             decoded.extend(public_email_candidates(address))
-    return list(dict.fromkeys(decoded))
+    seen = set()
+    unique = []
+    for email in decoded:
+        if email.casefold() not in seen:
+            seen.add(email.casefold())
+            unique.append(email)
+    return unique
 
 
 def choose_contact(emails: list[str], source_url: str) -> str | None:
@@ -137,7 +143,12 @@ def choose_contact(emails: list[str], source_url: str) -> str | None:
     host = (urlsplit(source_url).hostname or '').lower().removeprefix('www.')
     if not host:
         return None
-    same_host = [value for value in emails if value.partition('@')[2].lower() == host]
+    # A page may show the same mailbox both as text and in a protected link,
+    # sometimes with different capitalization. Do not treat it as ambiguous.
+    unique = {}
+    for value in emails:
+        unique.setdefault(value.casefold(), value)
+    same_host = [value for value in unique.values() if value.partition('@')[2].lower() == host]
     if len(same_host) == 1:
         return same_host[0]
     selected = [value for value in same_host if _OUTREACH.search(value.partition('@')[0])]

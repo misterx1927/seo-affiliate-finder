@@ -79,6 +79,30 @@ class AnalysisTests(unittest.TestCase):
         self.assertEqual(result.brands, ("21 Casino", "21 Casino Deluxe", "2 1 Casino"))
 
 class ExportTests(unittest.TestCase):
+    def test_tracked_run_exports_its_own_analysis_without_borrowing_current_page(self):
+        conn = connect(':memory:')
+        self.addCleanup(conn.close)
+        url = 'https://publisher.example/review'
+        with conn:
+            for run_id in (1, 2, 3):
+                conn.execute("INSERT INTO runs(id,started_at,mode,status) VALUES (?, 'now', 'live', 'partial')", (run_id,))
+                conn.execute('INSERT INTO run_analysis_tracking(run_id) VALUES (?)', (run_id,))
+                replace_keyword_results(conn, f'2026-11-{run_id + 20}', 'q', [{'position': 1, 'url': url}], run_id)
+                conn.execute('INSERT INTO partial_observations VALUES (?, ?, ?, ?, ?, ?)', (run_id, f'2026-11-{run_id + 20}', 'partial', 1, url, 'publisher.example'))
+            conn.execute("INSERT INTO pages(url,status,relevance,brands_json,contact) VALUES (?, 'complete', 'no', '[\"Current\"]', 'current@publisher.example')", (url,))
+            conn.execute("INSERT INTO run_page_analysis(run_id,url,status,relevance,brands_json,contact) VALUES (1, ?, 'complete', 'yes', '[\"Old\"]', 'old@publisher.example')", (url,))
+            conn.execute("INSERT INTO run_page_analysis(run_id,url,status,error) VALUES (2, ?, 'needs_review', 'Unavailable')", (url,))
+        path = Path('data/test-history-export.csv')
+        self.addCleanup(lambda: path.unlink(missing_ok=True))
+        for exporter in (export_observations, export_partial_observations):
+            with self.subTest(exporter=exporter.__name__):
+                for run_id, status, relevance, contact in ((1, 'complete', 'yes', 'old@publisher.example'), (2, 'needs_review', '', ''), (3, 'pending', '', '')):
+                    exporter(conn, path, run_id=run_id)
+                    with path.open(encoding='utf-8-sig', newline='') as stream:
+                        row = next(csv.DictReader(stream))
+                    self.assertEqual((row['analysis_status'], row['relevance'], row['contact']), (status, relevance, contact))
+                    self.assertEqual(row['page_source'], 'not_recorded')
+
     def test_restored_result_provenance_is_distinguished(self):
         self.assertEqual(serp_provenance(3, '[1, 3]', 1), 'restored_from_google_web')
         self.assertEqual(serp_provenance(2, '[1, 3]', 1), 'original_or_verification_unavailable')

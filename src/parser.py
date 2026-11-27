@@ -22,6 +22,9 @@ def _check_interstitial(text: str, title: str = "") -> None:
     # title plus a matching visible message is stronger evidence than length.
     # Require both so an article discussing CAPTCHAs is not discarded.
     challenge_title = title.casefold().strip()
+    if (re.match(r"^(?:not available|unavailable) in your (?:area|region)\b", challenge_title)
+            and re.search(r"(?:isn['’]?t|is not) available in your (?:area|region)", text[:8_000], re.I)):
+        raise PageError("Possible regional mismatch; manual review required")
     if (re.search(r"^(?:just a moment(?:\.\.\.|…|!)?|attention required\s*!?\s*(?:\|\s*cloudflare)?)$", challenge_title)
             and any(phrase in text[:8_000].casefold() for phrase in (
                 "verify you are human", "checking your browser", "checking if the site connection is secure",

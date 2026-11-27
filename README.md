@@ -2,6 +2,12 @@
 
 Find potential casino affiliate placements in Google Canada’s English mobile results. The prototype records rankings for ten preset queries, analyzes unique pages with an LLM for relevance, casino brands and contacts, and provides a local review dashboard.
 
+## Review materials
+
+- [Demonstration in English](affiliate-finder-demo-en.mp4) and [in Russian](affiliate-finder-demo.mp4). On GitHub, select **View raw** to play or download.
+- [Recorded results](results/run-7-ai-updated.csv) for the included dashboard view.
+- [Latest run summary, 27 November](results/RUN_2026-11-27.md) and [20-page sample review](results/INDEPENDENT_SAMPLE_20.md).
+
 ## Quick start (Windows, Python 3.11+)
 
 In PowerShell from the project folder:
@@ -14,7 +20,7 @@ py -m venv .venv
 
 Open the displayed URL. When locally collected results are available, the dashboard defaults to **Реальные результаты**. Otherwise, it shows **Сохранённый прогон**, the included [recorded results](results/run-7-ai-updated.csv), without API keys or paid calls. Select **Демо** and click **Обновить демо** for fictional data. The dashboard includes filters, CSV/Excel exports and pages needing review. This setup was tested on Windows with Python 3.13 in an isolated copy without credentials or databases.
 
-The dashboard groups the filtered results by domain and displays the best position and its page and query. Other matching pages and positions remain available in the details panel. Dashboard downloads contain this grouped view, not the complete search history. The recorded CSV remains ungrouped.
+The dashboard groups the filtered results by domain and displays the best position and its page and query. Other matching pages and positions remain available in the details panel. A potentially relevant page without an identified contact or contact page is marked for review; this is a dashboard rule and does not alter the stored AI assessment. Dashboard downloads contain this grouped view, not the complete search history. The recorded CSV remains ungrouped.
 
 ## Collect real data
 

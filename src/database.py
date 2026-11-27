@@ -55,7 +55,21 @@ CREATE TABLE IF NOT EXISTS pages (
  relevance TEXT, brands_json TEXT, contact TEXT, evidence_json TEXT, error TEXT,
  analysis_version TEXT
 );
+CREATE TABLE IF NOT EXISTS run_page_analysis (
+ run_id INTEGER NOT NULL REFERENCES runs(id), url TEXT NOT NULL,
+ content_hash TEXT, analyzed_at TEXT, status TEXT NOT NULL,
+ relevance TEXT, brands_json TEXT, contact TEXT, evidence_json TEXT,
+ error TEXT, analysis_version TEXT, PRIMARY KEY(run_id, url)
+);
 """
+
+
+def record_run_page_analysis(conn: sqlite3.Connection, run_id: int, url: str) -> None:
+    """Snapshot this run's page result inside the caller's transaction."""
+    conn.execute("""INSERT OR REPLACE INTO run_page_analysis
+        (run_id, url, content_hash, analyzed_at, status, relevance, brands_json, contact, evidence_json, error, analysis_version)
+        SELECT ?, url, content_hash, analyzed_at, status, relevance, brands_json, contact, evidence_json, error, analysis_version
+        FROM pages WHERE url=?""", (run_id, url))
 
 def connect(path: str | Path) -> sqlite3.Connection:
     if str(path) != ":memory:":

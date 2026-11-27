@@ -3,7 +3,7 @@ from dataclasses import asdict
 from datetime import datetime, timezone
 import hashlib
 import json
-from .database import replace_keyword_results
+from .database import record_run_page_analysis, replace_keyword_results
 from .parser import extract_text
 from .run_lock import RunLock
 from .serp import is_google_redirect
@@ -122,7 +122,9 @@ def run_live(conn, day, keywords, serp, analyzer, fetch, lock_path, max_pages, r
                     version = getattr(analyzer, "cache_version", "default-v1")
                     old = conn.execute("SELECT content_hash, status, analysis_version FROM pages WHERE url=?", (url,)).fetchone()
                     if old and old["status"] == "complete" and old["content_hash"] == digest and old["analysis_version"] == version:
-                        with conn: conn.execute("UPDATE run_pages SET status='complete' WHERE run_id=? AND url=?", (run_id, url))
+                        with conn:
+                            record_run_page_analysis(conn, run_id, url)
+                            conn.execute("UPDATE run_pages SET status='complete' WHERE run_id=? AND url=?", (run_id, url))
                         continue
                     analysis, usage = analyzer.analyze(text)
                     with conn:
@@ -138,6 +140,7 @@ def run_live(conn, day, keywords, serp, analyzer, fetch, lock_path, max_pages, r
                         relevance=excluded.relevance, brands_json=excluded.brands_json,contact=excluded.contact,
                         evidence_json=excluded.evidence_json,error=NULL,analysis_version=excluded.analysis_version""", (url, digest, _now(), analysis.relevance,
                         json.dumps(analysis.brands, ensure_ascii=False), analysis.contact, json.dumps(analysis.evidence, ensure_ascii=False), version))
+                        record_run_page_analysis(conn, run_id, url)
                         conn.execute("UPDATE run_pages SET status='complete' WHERE run_id=? AND url=?", (run_id, url))
                 except Exception as exc:
                     errors.append(f"page {url}: {type(exc).__name__}: {exc}")
@@ -153,6 +156,7 @@ def run_live(conn, day, keywords, serp, analyzer, fetch, lock_path, max_pages, r
                         conn.execute("""INSERT INTO pages(url,status,error) VALUES (?, 'needs_review', ?)
                           ON CONFLICT(url) DO UPDATE SET status='needs_review', relevance=NULL, brands_json=NULL,
                           contact=NULL, evidence_json=NULL, error=excluded.error""", (url, str(exc)))
+                        record_run_page_analysis(conn, run_id, url)
             if len(unique_urls) > max_pages: errors.append(f"{len(unique_urls)-max_pages} pages not analyzed due to page limit")
             status = "partial" if errors else "complete"
         except BaseException as exc:

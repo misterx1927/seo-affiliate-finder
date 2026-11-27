@@ -226,6 +226,9 @@ with closing(connect("data/demo.db" if is_demo else "data/live.db")) as conn:
         LEFT JOIN run_analysis_tracking tr ON tr.run_id=o.run_id
         LEFT JOIN run_page_analysis h ON h.run_id=o.run_id AND h.url=o.url
         ORDER BY o.run_id DESC, o.keyword, o.position""").fetchall()
+    archived_runs = [] if is_demo or is_snapshot else conn.execute("""SELECT o.run_id, MIN(o.day) AS day,
+        COUNT(DISTINCT o.keyword) AS keywords, COUNT(*) AS positions
+        FROM run_observations o GROUP BY o.run_id ORDER BY o.run_id DESC""").fetchall()
     displayed = []
     for row in rows:
         item = dict(row)
@@ -427,6 +430,29 @@ if partial_rows:
         partial_view = partial_view.rename(columns={**column_labels, "Run": "Запуск", "Note": "Причина проверки"})
         partial_columns = ["Ссылка на страницу", "Позиция", "Запрос", "Оценка", "Бренды", "Причина проверки"]
         st.dataframe(partial_view[partial_columns], hide_index=True, width="stretch", column_config={"Ссылка на страницу": st.column_config.LinkColumn("Ссылка на страницу", display_text=r"https?://([^/]+).*")})
+
+if archived_runs:
+    with st.expander("История поисковых запусков"):
+        st.caption("Здесь сохранены позиции из полных ответов на отдельные запросы. Неполные ответы показаны отдельно. Архив создаётся для новых запусков, ранее утраченные данные в нём не восстановлены.")
+        labels = {f"{r['day']} · запуск {r['run_id']} · запросов: {r['keywords']} · позиций: {r['positions']}": r['run_id'] for r in archived_runs}
+        selected_archive = st.selectbox("Выберите запуск", list(labels), key="archive_run")
+        archive_id = labels[selected_archive]
+        with closing(sqlite3.connect("data/live.db")) as archive_db:
+            history = pd.read_sql_query("""SELECT o.position AS 'Позиция', o.url AS 'Страница', o.keyword AS 'Запрос',
+                d.from_web_ranks, d.verification_requested FROM run_observations o
+                LEFT JOIN serp_diagnostics d ON d.run_id=o.run_id AND d.keyword=o.keyword
+                WHERE o.run_id = ? ORDER BY o.keyword, o.position""", archive_db, params=(archive_id,))
+        history_sources = {"restored_from_google_web": "Восстановлена через Google Web",
+                           "original_or_verification_unavailable": "Исходная или проверка недоступна",
+                           "verification_not_requested": "Источник не проверялся", "unknown": "Неизвестен"}
+        history["Источник позиции"] = history.apply(lambda row: history_sources[serp_provenance(
+            row["Позиция"], row["from_web_ranks"] if pd.notna(row["from_web_ranks"]) else None,
+            row["verification_requested"] if pd.notna(row["verification_requested"]) else None)], axis=1)
+        history = history.drop(columns=["from_web_ranks", "verification_requested"])
+        st.caption("Показаны сохранённые позиции, включая сайты, исключённые из списка потенциальных площадок. Позиции, восстановленные через Google Web, могут отличаться от мобильной выдачи. Оценки и контакты здесь не подставляются задним числом.")
+        st.dataframe(history, hide_index=True, width="stretch", column_config={"Страница": st.column_config.LinkColumn("Страница", display_text=r"https?://([^/]+).*")})
+        archive_csv = history.map(safe_cell).to_csv(index=False).encode("utf-8-sig")
+        st.download_button("↓ Скачать позиции запуска", archive_csv, f"search-run-{archive_id}.csv", "text/csv")
 
 st.markdown('<div class="footer"><span>✳ &nbsp; Affiliate Finder</span><span>Просмотр сохранённых результатов без новых запросов</span></div>', unsafe_allow_html=True)
 

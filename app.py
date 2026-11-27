@@ -245,7 +245,7 @@ with closing(connect("data/demo.db" if is_demo else "data/live.db")) as conn:
         tracked_history = bool(item.pop('HistoryTracked', False))
         item['Contact page'] = review.get('contact_page', '') if review and review.get('contact_page') else ('' if tracked_history else contact_links.get(item['URL'], ''))
         domain_contact = domain_contacts.get((urlsplit(item['URL']).hostname or '').lower().removeprefix('www.'), {})
-        if domain_contact and item['Relevance'] == 'yes':
+        if domain_contact:
             item['Public contact candidate'] = domain_contact['email'] or item['Public contact candidate']
             item['Contact candidate source'] = domain_contact['source']
             item['Contact page'] = domain_contact['contact_page']

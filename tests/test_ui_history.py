@@ -1,4 +1,5 @@
 import os
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -14,6 +15,10 @@ class UIHistoryTests(unittest.TestCase):
         (root / 'data').mkdir(exist_ok=True)
         with tempfile.TemporaryDirectory(dir=root / 'data') as temporary:
             folder = Path(temporary)
+            (folder / 'results').mkdir()
+            (folder / 'results' / 'public-domain-contacts.json').write_text(json.dumps({
+                'second.example': {'email': 'public@second.example', 'source': 'https://second.example/contact', 'contact_page': 'https://second.example/contact'}
+            }), encoding='utf-8')
             db = connect(folder / 'data' / 'live.db')
             with db:
                 db.execute("INSERT INTO runs(id,started_at,mode,status) VALUES (1,'now','live','complete')")
@@ -40,6 +45,7 @@ class UIHistoryTests(unittest.TestCase):
                 self.assertEqual(table['Ссылка на страницу'].tolist(), ['https://second.example/'])
                 self.assertEqual(table['Оценка'].tolist(), ['Нет анализа'])
                 self.assertNotIn('current@second.example', table['Возможный контакт'].tolist())
+                self.assertEqual(table['Возможный контакт'].tolist(), ['public@second.example'])
             finally:
                 os.chdir(previous)
 

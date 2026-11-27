@@ -82,14 +82,16 @@ class LivePipelineTests(unittest.TestCase):
                 return [OrganicResult(i, f"https://new{i}.example/") for i in range(1, 11)]
 
         run_live(self.db, "2026-11-24", ["ok"], FakeSerp(), FakeAI(), fake_fetch, self.path, 0)
-        run_live(self.db, "2026-11-25", ["ok"], FakeSerp(), FakeAI(), fake_fetch, self.path, 0)
-        run_live(self.db, "2026-11-25", ["ok"], ChangedSerp(), FakeAI(), fake_fetch, self.path, 0)
+        earlier = run_live(self.db, "2026-11-25", ["ok"], FakeSerp(), FakeAI(), fake_fetch, self.path, 0)
+        later = run_live(self.db, "2026-11-25", ["ok"], ChangedSerp(), FakeAI(), fake_fetch, self.path, 0)
         rows = self.db.execute("SELECT day, position, url FROM observations ORDER BY day, position").fetchall()
         self.assertEqual(len(rows), 20)
         self.assertEqual([r[1] for r in rows[:10]], list(range(1, 11)))
         self.assertEqual([r[1] for r in rows[10:]], list(range(1, 11)))
         self.assertEqual(rows[0][2], "https://example1.com/")
         self.assertEqual(rows[10][2], "https://new1.example/")
+        self.assertEqual(self.db.execute('SELECT url FROM run_observations WHERE run_id=? AND position=1', (earlier['run_id'],)).fetchone()[0], 'https://example1.com/')
+        self.assertEqual(self.db.execute('SELECT url FROM run_observations WHERE run_id=? AND position=1', (later['run_id'],)).fetchone()[0], 'https://new1.example/')
     def test_partial_search_is_saved_and_resumed_without_repeating_request(self):
         class Short(FakeSerp):
             def __init__(self): self.calls = 0; self.last_cost = 0.002

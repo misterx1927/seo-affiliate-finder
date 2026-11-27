@@ -41,8 +41,8 @@
   },
   "chipy.com": {
     "email": "marketing@chipy.com",
-    "source": "https://chipy.com/contact-us",
-    "contact_page": "https://chipy.com/contact-us"
+    "source": "https://chipy.com/help/advertise-with-us",
+    "contact_page": "https://chipy.com/help/advertise-with-us"
   },
   "casinocanada.com": {
     "email": "partners@casinocanada.com",
@@ -108,5 +108,15 @@
     "email": "",
     "source": "https://sigma.world/contact/",
     "contact_page": "https://sigma.world/contact/"
+  },
+  "casinority.com": {
+    "email": "affiliate@casinority.com",
+    "source": "https://casinority.com/contacts/",
+    "contact_page": "https://casinority.com/contacts/"
+  },
+  "freeslots99.com": {
+    "email": "contact@freeslots99.com",
+    "source": "https://www.freeslots99.com/contacts/",
+    "contact_page": "https://www.freeslots99.com/contacts/"
   }
 }
